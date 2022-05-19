@@ -1,0 +1,152 @@
+---
+title: "Planning: Microbiome data analysis with microViz"
+output: html_notebook
+---
+
+# Planning
+
+### Timing:
+
+5 hours (excluding 2x30 min coffee breaks)\
+-\> 4 blocks of 1 hour & 15 mins\
+-\> Typically: 15 minutes talking and 1 hour of hands-on
+
+#### Part A:
+
+20-30 min intro (me, data, dataset(s), aims, phyloseq & microViz) -\> bar plots & alpha diversity
+
+#### Part B:
+
+Beta diversity: distance/dissimilarity and taxon filtering (prev. & abund.) -\> Ordination plots
+
+#### Part C:
+
+More Ordination (PERMANOVA) and taxa transformation (clr and log, for PCA and taxon stats)
+
+Plots and statistics with individual taxa - (simple) "differential abundance testing"
+
+#### Part D:
+
+DADA2 denoising?
+Adapt the 2020 tutorial.
+Do I have time for this?
+
+End workshop with recap and notes on current trends topics
+
+### Topics
+
+1.  **Where are we going?**
+
+    -   Show some pretty plots
+    -   Aim: understand plots and create your own
+
+2.  **Intro to the data**
+
+    -   `phyloseq` objects
+        -   Slots - OTU table (funny name), tax_table, sample_data, phy_tree
+        -   View/ print each part
+    -   Workshop datasets
+        -   16S data - `corncob::ibd_phylo`
+        -   Metagenomic taxonomic data - Shao et al. 2019
+        -   16S vs. metagenomics
+            -   viz and stats methods in workshop are relevant to both
+            -   brief discussion of data processing later, or covered by Scott?
+
+3.  **Looking at microbiome data (with basic bar charts)**
+
+    -   Take small subset of 16S data
+    -   Use bar charts as intro to microbiome data issues/features
+        -   Taxonomic classification (name our OTUs/ASVs)
+        -   Taxonomic hierarchy - aggregation options
+            -   ? details later on aggregation trade-offs\
+                (dimensionality reduction and confidence in classification, vs. loss of info)
+        -   Compositional data
+            -   Total reads does not give (reliable) information on sample site biomass!
+            -   Details on compositionality problem later -\> just convert to proportions for now
+        -   Many taxa, mostly rare - sparse -\> filtering - details later
+
+4.  **Alpha diversity**
+
+    -   Richness - just counting?
+        -   Do simple observed richness of genera and point to Amy Willis breakaway etc. for more
+    -   Diversity
+        -   Shannon index & effective numbers of taxa by exp transform
+    -   Evenness - Inverse Simpson
+    -   Compare alpha diversity per group (plot and do basic stats?)
+
+    ***\
+    ------- COFFEE BREAK ------***-\
+
+5.  **Filtering**
+
+    -   **Samples:** Removing low quality samples
+        -   Decide minimum acceptable reads, plot readcount, see outliers, see negative controls
+    -   **Taxa:** Removing rare taxa
+        -   Why do this? ( & don't do this for alpha diversity )
+            -   Remove errors? Remove noise?
+            -   Consider effect on subsequent analysis (faster, fewer, irrelevant?)
+        -   Picking thresholds
+            -   Prevalence vs abundance plot to aid judgement
+
+            -   Plot total reads per taxon
+        -   Manually deselecting taxa? Known contaminants, other weirdness?
+        -   Correcting sequencing errors?\
+            Denoising ASV data (at end using updated 2020 DADA2 tutorial with that data)
+        -   Removing contaminants with decontam?\
+            (at end as extension, need negative control data, most important for low biomass samples)
+
+6.  **Beta diversity (part 1)**
+
+    -   Ecological distances & dissimilarities
+
+        -   Binary Jaccard -\> Bray-Curtis -\> UniFrac distances - who's there, how much, how related?
+            -   Different relative emphasis on high or low abundance taxa
+            -   Remember to consider and report the taxonomic rank!
+        -   Ordination (part 1) - Principal Co-ordinates Analysis
+            -   "So what can we do with this distance matrix?"
+            -   Basic interpretation of PCoA plots
+        -   Data exploration with PCoA and microViz shiny app\
+
+    ***------- DINNER BREAK -------***
+
+7.  **Beta diversity (part 2)**
+
+    -   PERMANOVA: are those groups actually different? (adjust covariates?)
+    -   What about Euclidean distances?
+        -   Excessive emphasis on high-abundance taxa --\> transform features first
+    -   Abundance data transformation
+        -   Log-transformation -\> zero replacement (keep it simple and record your approach)
+        -   Compositionality - centered-log-ratio transformation - aka Aitchison distance
+            -   Overview of CoDa problem (Gloor 2017)
+                -   Statistical issues, and interpretation issues (worse with simpler ecosystems)
+        -   Visualize the transformation with heatmaps
+    -   PCA plots: equivalence to Euclidean PCoA but with taxon loading vectors
+
+8.  **Individual taxa - Differential abundance**
+
+    -   Quick and dirty -\> Spearman rank correlation heatmap?
+    -   Lots of methods: differing results [(Nearing 2022)](https://www.nature.com/articles/s41467-022-28034-z)
+        -   -\> Filter out the noise & interpret results with caution! use multiple testing corrections
+        -   -\> Try multiple methods and/or use same method as previous study if replicating
+        -   -\> Avoid Lefse and edgeR?
+        -   Beware: Not all methods allow covariate adjustment & few allow random effects (for time-series)
+    -   Remember it's all relative (abundance)
+        -   You don't know if one taxon went up, down, or stayed the same, as others changed around it
+    -   Let's try it:
+        -   Simple regression, in the style of Maaslin2 defaults -\> total sum scaled, log2 transformed.
+        -   Visually compare taxon abundances between groups
+    -   microViz taxonomic association tree plots
+
+    ***------- COFFEE BREAK ------***
+
+9.  **DADA2 denoising of fastq?**
+
+    -   Adapt the 2020 tutorial. Do I have time for this?
+
+10. **End workshop** with recap and pointers to current trends/other topics
+
+    -   Quantitative microbiome profiling? expensive, controversial, but very interesting... Raes lab work.
+    -   Much more information in metagenomics (functional capacity, strain tracking, viruses, etc.)
+        -   Predicted functional capacity from 16S not that interesting
+    -   Full length 16S with long-read sequencing? higher taxonomic precision?
+    -   Collation of microbiome-disease association results?

@@ -1,0 +1,5 @@
+library(renv)
+install.packages("remotes")
+install.packages("BiocManager")
+install.packages('bioc::microbiome')
+remotes::install_github("david-barnett/microViz", dependencies = TRUE)
