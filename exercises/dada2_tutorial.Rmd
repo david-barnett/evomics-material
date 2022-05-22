@@ -1,205 +1,232 @@
 ---
-title: "DADA2 Tutorial"
-author: "Scott A. Handley"
+title: "Processing 16S rRNA gene amplicon data with DADA2."
+author: 
+- David Barnett
+- Scott A. Handley
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
-output: html_document
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
 ---
 
-*Adapted from Ben C. Callahan [benjjneb](https://github.com/benjjneb).
+\*Adapted from Ben C. Callahan [benjjneb](https://github.com/benjjneb).
 
-## Processing 16S rRNA marker-gene data with dada2.
+**DADA = Divisive Amplicon Denoising Algorithm**
+
+# Prerequisites
 
 **This workflow assumes that your sequencing data meets certain criteria:**
 
-- Samples have been demultiplexed, i.e. split into individual per-sample fastq files.
+-   Samples have been demultiplexed\*, i.e. split into individual per-sample fastq files.
+-   Non-biological nucleotides have been removed, e.g. primers, adapters, linkers, etc.
+-   If paired-end sequencing data, the forward and reverse fastq files contain reads in matched order.
 
-- Non-biological nucleotides have been removed, e.g. primers, adapters, linkers, etc.
+\*Additional information about demultiplexing can be found on the dada2 website: <https://benjjneb.github.io/dada2/index.html>
 
-- If paired-end sequencing data, the forward and reverse fastq files contain reads in matched order.
+# Setup
 
-*Additional information about demultiplexing can be found on the dada2 website: https://benjjneb.github.io/dada2/index.html
-
-## Load package and set path
-
-Load the `dada2` package. If it is not installed see the [dada2 installation instructions](dada-installation.html):
-
-```{r load-libraries}
-library(dada2); packageVersion("dada2")
-library(tidyverse); packageVersion("tidyverse")
-
+```{r warning=FALSE}
+library(dada2)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(ggplot2)
 ```
 
-# Set the path to the input fastq files:
+## Find your fastq files
 
-```{r set-path}
-# You will need to make sure the path corresponds to where you cloned the repository
-path <- here::here("data/dada2/fastqs")
-list.files(path)
+```{r}
+dataPath <- here::here("data/dada2/fastqs")
+list.files(dataPath)
 ```
 
-# Forward, Reverse, Sample Names
+-   Get matched lists of the forward and reverse fastq.gz files:
 
-Get matched lists of the forward and reverse fastq.gz files:
-
-```{r filenames}
+```{r}
 # Forward and reverse fastq filenames have format: SAMPLENAME_R1.fastq.gz and SAMPLENAME_R2.fastq.gz
-fnFs <- sort(list.files(path, pattern="_R1.fastq.gz", full.names = TRUE))
-fnRs <- sort(list.files(path, pattern="_R2.fastq.gz", full.names = TRUE))
-fnFs[[1]]; fnRs[[1]]
+filesF <- list.files(dataPath, pattern = "_R1.fastq.gz", full.names = TRUE) %>% sort()
+filesR <- list.files(dataPath, pattern = "_R2.fastq.gz", full.names = TRUE) %>% sort()
+filesF[[1]]
+filesR[[1]] # check the names!
 ```
 
-# Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq.gz:
+-   Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq.gz:
 
 ```{r sample-names}
-sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
-sample.names
+sampleNames <- filesF %>%
+  basename() %>%
+  strsplit("_") %>%
+  map_chr(1)
+sampleNames
 ```
 
-# Inspect forward and reverse read quality profiles
+# Inspecting read quality
+
+DADA2 has plotting functions so you can inspect read quality without leaving R!
+Let's look at your forward and reverse read quality profiles.
 
 We are using the [515F/806R primer set](www.earthmicrobiome.org/protocols-and-standards/16s/) using the Illumina MiSeq paired 2x250 protocol.
 
-```{r plot-quality}
-# Just select
-plotQualityProfile(fnFs[c(1,11)])
+```{r}
+# Plot the quality profile of 2 files, the forward and reverse reads of same sample
+c(filesF[[1]], filesR[[1]]) %>% plotQualityProfile()
+```
 
-p.qual.fwd <- plotQualityProfile(fnFs[1:10], aggregate = TRUE) + ggtitle("Forward")
-p.qual.fwd
+```{r}
+# Plot the quality of forward and reverse reads, aggregating files together.
+# Note: we're not plotting all 16 samples here, only because it is quite slow!
+p_qual_fwd <- plotQualityProfile(filesF[1:5], aggregate = TRUE) + ggtitle("Forward")
+p_qual_rev <- plotQualityProfile(filesR[1:5], aggregate = TRUE) + ggtitle("Reverse")
 
-p.qual.rev <- plotQualityProfile(fnRs[1:10], aggregate = TRUE) + ggtitle("Reverse")
-p.qual.rev
-
+patchwork::wrap_plots(p_qual_fwd, p_qual_rev)
 ```
 
 **Where to truncate?**
 
-This a questions that causes more stress than necessary. Just remove obviously low quality sequence. dada2 acutally does error correction, so a bit of error is fine.
+This a questions that causes more stress than necessary.
+Just remove obviously low quality sequence.
+DADA2 actually does error correction, so a bit of error is fine.
 
 ## Filter and trim
 
-Assign filenames for the filtered fastq.gz in the filtered/ subdirectory.
-
-```{r filt-names}
-# This presets output file names for the filtered data
-filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
-filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
-
-
-# What values will you select for quality control?
-# Pick values from the plots p.qual.fwd and p.qual.rev and enter them in the command below
-# truncLen=c(fwd,rev)
-# so if you wanted to remove 10 based from fwd and 20 bases from rev:
-# truncLen=c(240,230)
-# the example below is c(240,170) but feel free to play with this paramater
-
-out <- filterAndTrim(fwd = fnFs, filt = filtFs, rev = fnRs, filt.rev = filtRs, 
-                     truncLen=c(240,170),
-                     maxEE=c(2,2),
-                     compress=TRUE,
-                     multithread=FALSE)
-
+```{r}
+# Assign filenames for the filtered fastq.gz in the filtered/ subdirectory.
+filesF_filt <- file.path(dataPath, "filtered", paste0(sampleNames, "_F_filt.fastq.gz"))
+filesR_filt <- file.path(dataPath, "filtered", paste0(sampleNames, "_R_filt.fastq.gz"))
 ```
 
-# Filtering Stats
+**What values will you select for quality control?**
 
-```{r filter-stats}
+Pick values from the plots `p_qual_fwd` and `p_qual_rev` and set the truncLen argument like this `truncLen = c(fwd, rev)`
+
+So if you wanted to remove 10 based from fwd and 20 bases from rev: `truncLen = c(240, 230)`
+
+The example below is `c(240, 170)` but feel free to play with this parameter
+
+```{r}
+filterStats <- filterAndTrim(
+  fwd = filesF, filt = filesF_filt, 
+  rev = filesR, filt.rev = filesR_filt, 
+  truncLen = c(240, 170),
+  maxEE = c(2, 2), # read the help page to find out what filtering maxEE does!
+  compress = TRUE, multithread = 2
+)
+```
+
+## Filtering Stats
+
+Let's make a quick plot of the trimming results in `filterStats`
+
+```{r}
 # Examine the output file
-head(out)
+head(filterStats)
 
-# Let's recall our ggplot2 exercises and make a quick plot of the trimming results in 'out'
-
-# Check what type of object "out" is using the 'class' command
+# Check what type of object "filterStats" is using the 'class' command
 # Tip: checking the class of an object can help diagnose many common problems in R
-class(out)
+class(filterStats)
 
-# ggplot doesn't work on matrixes, so you need to convert "out" to a data.frame
-out.df <- as.data.frame(out)
-class(out.df)
-
-ggplot(out.df, aes(x = reads.in, y = reads.out)) +
+# ggplot doesn't work on matrices, so you need to convert "filterStats" to a data.frame
+filterStats %>% 
+  as.data.frame() %>% 
+  ggplot(aes(x = reads.in, y = reads.out)) +
   geom_point(size = 3, alpha = 0.6) +
   geom_smooth(method = "lm") + # quick linear model
   labs(x = "Raw Reads", y = "Trimmed Reads", title = "Read Trimming Results")
-
-# What other data can we extract from this table?
-# Just some examples of how to calculate quick table statstics
-out.df %>%
-  mutate(diff = reads.in-reads.out) %>%
-  mutate(percent = round((100*(reads.out/reads.in)), digits = 2))
-
 ```
 
-- What fraction of reads were kept?
-- Was that fraction reasonably consistent among samples?
-- Were enough reads kept to achieve your analysis goals?
+```{r}
+# What other data can we extract from this table?
+# Just some examples of how to calculate quick table statistics
+filterStats %>%
+  as.data.frame(row.names = 1:16) %>% 
+  mutate(
+    sample = rownames(filterStats),
+    sample = stringr::str_remove(sample, '_.+'),
+    diff = reads.in - reads.out,
+    percent = 100 * (reads.out / reads.in)
+  )  
+```
+
+-   What fraction of reads were kept?
+-   Was that fraction reasonably consistent among samples?
+-   Were enough reads kept to achieve your analysis goals?
 
 **The truncation lengths are the most likely parameters you might want to revisit.**
 
 # Learn Error Rates
 
-The DADA2 algorithm makes use of a parametric error model (`err`) and every amplicon dataset has a different set of error rates. The `learnErrors` method learns this error model from the data, by alternating estimation of the error rates and inference of sample composition until they converge on a jointly consistent solution.
+The DADA2 algorithm makes use of a parametric error model (`err`) and every amplicon dataset has a different set of error rates.
+The `learnErrors` method learns this error model from the data, by alternating estimation of the error rates and inference of sample composition until they converge on a jointly consistent solution.
 
-```{r learn-errors}
+```{r}
 # Learn the error rates for the forward reads
-errF <- learnErrors(filtFs, multithread=1) # Set multithread=TRUE to use all cores
-
-# Learn the error rates for the reverse reads
-errR <- learnErrors(filtRs, multithread=1)
-
-# There is a 'hidden' function in dada2 that allows you to extract the 'convergence' estimate at each iteration
-plot(dada2:::checkConvergence(errF), type = "o", col = "firebrick3", main = "Convergence")
-
-# Don't worry too much about this. As long as the line rapidly drops-off near zero and not substantially improve thereafter.
-
-# Plot individual transition and transversion error rates
-plotErrors(errF, nominalQ=TRUE)
-
-# Does the model (black line) reasonably fit the observations (black points)?
-# Do the error rates mostly decrease with quality score?
-
-# The goal here is good, not perfect, so don't sweat the small stuff (or non-convergence).
-
+errF <- learnErrors(filesF_filt, multithread = 2L)
 ```
 
-## Dereplicate
+```{r}
+# Learn the error rates for the reverse reads
+errR <- learnErrors(filesR_filt, multithread = 2L)
+```
 
-Dereplication combines all identical sequencing reads into "unique sequences" with a corresponding "abundance" equal to the number of reads with that unique sequence.
+```{r}
+# Plot individual transition and transversion error rates (for the fwd reads)
+plotErrors(errF, nominalQ = TRUE)
+```
+
+-   Does the model (black line) reasonably fit the observations (black points)?
+-   Do the error rates mostly decrease with quality score?
+
+The goal here is good, not perfect, so don't sweat the small stuff.
+
+# De-replicate reads
+
+De-replication combines all identical sequencing reads into "unique sequences" with a corresponding "abundance" equal to the number of reads with that unique sequence.
 
 ```{r dereplicate}
-# derep
-derepFs <- derepFastq(filtFs)
-derepRs <- derepFastq(filtRs)
+# dereplicate sequences (no error correction yet!)
+derep_seqsF <- derepFastq(filesF_filt)
+derep_seqsR <- derepFastq(filesR_filt)
 
 # Name the derep-class objects by the sample names
-names(derepFs) <- sample.names
-names(derepRs) <- sample.names
+names(derep_seqsF) <- sampleNames
+names(derep_seqsR) <- sampleNames
 
+derep_seqsF[[1]]
 ```
 
-# Sample Inference
+# Denoise sequences
 
-We are now ready to apply [the core sample inference algorithm](https://www.nature.com/articles/nmeth.3869#methods) to the dereplicated data. 
+We are now ready to apply [the core sample inference algorithm](https://www.nature.com/articles/nmeth.3869#methods) to the dereplicated data.
 
 ```{r dada}
-dadaFs <- dada(derepFs, err=errF, multithread=1) # Set multithread=TRUE to use all cores
-dadaRs <- dada(derepRs, err=errR, multithread=1)
+dada_seqsF <- dada(derep = derep_seqsF, err = errF, multithread = 2)
+dada_seqsR <- dada(derep = derep_seqsR, err = errR, multithread = 2)
 
-# Inspecting the returned `dada-class` object:
-
-dadaFs[[1]]
-
+# Inspecting the returned `dada-class` object (for one sample):
+dada_seqsF[[1]]
 # The key thing to note here is the number of sequence variants identified in the input sequences
-
 ```
 
 # Merge Paired Reads
 
-```{r merge}
-mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, verbose=TRUE)
-
+```{r}
+merged_seqs <- mergePairs(
+  dadaF = dada_seqsF, derepF = derep_seqsF,
+  dadaR = dada_seqsR, derepR = derep_seqsR, 
+  verbose = TRUE
+)
 ```
 
-It is debatable if merging paired reads adds anything to the analysis for this primer set. Since R1 (fwd) and R2 (rev) sequence an overlapping region of the 16S rRNA gene, just analyzing R1 is essentially the same as analyzing merged R1-R2.
+```{r}
+merged_seqs$`806rcbc288` %>% glimpse() # have a look at the data for one sample
+```
+
+It is debatable if merging paired reads adds anything to the analysis for this primer set.
+Since R1 (fwd) and R2 (rev) sequence an overlapping region of the 16S rRNA gene, just analyzing R1 is essentially the same as analyzing merged R1-R2.
 
 Other primer sets of genes (ITS, 18S, etc.) might benefit from merging.
 
@@ -208,9 +235,12 @@ Other primer sets of genes (ITS, 18S, etc.) might benefit from merging.
 # Construct Sequence Table (ASV Table)
 
 ```{r create-seqtab}
-seqtab <- makeSequenceTable(mergers)
+seqtab <- makeSequenceTable(merged_seqs)
 dim(seqtab)
-
+class(seqtab)
+rownames(seqtab)
+colnames(seqtab)[1:3]
+seqtab[1:10]
 ```
 
 The sequence table is a `matrix` with rows corresponding to (and named by) the samples, and columns corresponding to (and named by) the sequence variants.
@@ -220,109 +250,147 @@ The sequence table is a `matrix` with rows corresponding to (and named by) the s
 Chimeric sequences are identified if they can be exactly reconstructed by combining a left-segment and a right-segment from two more abundant "parent" sequences.
 
 ```{r remove-chimeras}
-seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", verbose=TRUE)
+seqtab_nochim <- removeBimeraDenovo(seqtab, method = "consensus", verbose = TRUE)
 
 # Calculate % of reads that pass chimera filtering
-100*(sum(seqtab.nochim)/sum(seqtab))
-
+100 * (sum(seqtab_nochim) / sum(seqtab))
 ```
 
 # Track reads through the pipeline
 
-```{r track}
+```{r}
 # This is some custom code to pull out important values from the dada2 workflow
-# Don't worry too much about the code at this point, just focus on teh results table (track)
+# Don't worry too much about the code at this point, just focus on the results table 
 getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), rowSums(seqtab.nochim))
-colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "nonchim")
-rownames(track) <- sample.names
-head(track)
 
-# Is this a matrix or data.frame?
-class(track)
+readTrackingDf <- tibble(
+  sample = sampleNames, 
+  input = filterStats[, "reads.in"], filtered = filterStats[, "reads.out"],
+  denoisedF = map_dbl(dada_seqsF, getN), denoisedR = map_dbl(dada_seqsR, getN),  
+  merged = map_dbl(merged_seqs, getN), nonChimeric = rowSums(seqtab_nochim)
+)
 
-# It's a matrix again. Let's convert and make some quick plots
-track.df <- as.data.frame(track)
-class(track.df)
-
-# ggplot2 (and all of tidyverse) works really well with 'long' form data
-# Let's convert to long form so we can make a line plot of each stage
-track.df.long <- track.df %>%
-  rownames_to_column(var = "sample_id") %>% # make the rownames a variable
-  pivot_longer(-sample_id, # Pivot everything other than sample_id to 'long' format
-               values_to = "Number", # Column name for values
-               names_to = "Stage") # Column name for stages
-
-# Now we can plot the number of reads per each stage
-# These are just a couple of quick examples. There are a large number of ways to explore your data!
-
-# Line plot
-ggplot(track.df.long, aes(x = reorder(sample_id, Number), y = Number, col = Stage, group = Stage)) +
-  theme_linedraw() +
-  geom_point(size = 2) +
-  geom_line(lty = 2) +
-  theme(axis.text.x = element_blank())
-
-# Boxplot
-ggplot(track.df.long, aes(x = reorder(Stage, -Number), y = Number)) +
-  geom_boxplot(outlier.shape = "") +
-  geom_jitter(width = 0.1, alpha = 0.7, size = 2)
-
-# You can also quickly get summary statistcs from long form data
-track.df.long %>%
-  group_by(Stage) %>%
-  summarise(Mean = sum(Number))
-
+readTrackingDf
 ```
 
-Looks good! We kept the majority of our raw reads, and there is no over-large drop associated with any single step.
+```{r}
+# ggplot2 (and all of tidyverse) works really well with 'long' form data
+# Let's convert to long form so we can make a line plot of each stage
+readTrackingDf_long <- readTrackingDf %>%
+  mutate(max = input) %>% 
+  pivot_longer(
+    cols = !c(sample, max), # Pivot everything other than those 2 column to 'long' format
+    values_to = "Number", # Column name for values
+    names_to = "Stage" # Column name for stages
+  ) %>% 
+  mutate(Proportion = Number/max) %>% 
+  mutate(sample = forcats::fct_reorder(sample, -Number)) %>% 
+  mutate(Stage = forcats::fct_reorder(Stage, -Number))
+```
 
-- If a majority of reads failed to merge, you may need to revisit `truncLen` to ensure overlap.
-- If a majority of reads were removed as chimeric, you may have unremoved primers.
+```{r}
+# Now we can plot the number of reads per each stage
+readTrackingDf_long %>% 
+  ggplot(aes(x = sample, y = Number, fill = Stage, group = Stage)) +
+  # geom_col(position = position_dodge(preserve = 'total')) +
+  geom_col(position = position_identity(), width = readTrackingDf_long$Proportion * 0.8) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1)) +
+  scale_fill_viridis_d()
+```
+
+```{r}
+readTrackingDf_long %>% 
+ggplot(aes(x = Stage, y = Number, colour = sample)) +
+  geom_line(aes(colour = sample, group = sample), alpha = 0.7, size = 1) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_colour_viridis_d(option = 'turbo') +
+  theme_classic()
+```
+
+Looks good!
+We kept the majority of our raw reads, and there is no over-large drop associated with any single step.
+
+-   If a majority of reads failed to merge, you may need to revisit `truncLen` to ensure overlap.
+-   If a majority of reads were removed as chimeric, you may still have primers in your sequences.
 
 # Assign Taxonomy
 
-The `assignTaxonomy` function takes as input a set of sequences to ba classified, and a training set of reference sequences with known taxonomy, and outputs taxonomic assignments with at least `minBoot` bootstrap confidence.
+The `assignTaxonomy` function takes as input a set of sequences to be classified, and a training set of reference sequences with known taxonomy, and outputs taxonomic assignments with at least `minBoot` bootstrap confidence.
 
-This process can be slow, so we have precomputed this. The command you would actually run is #'d out in the following chunk. Do not run this, but DO run the unhased portion to load the precomputed taxonomic assignment file.
+This process can be slow, so we have precomputed this.
+The command you would actually run is commented out in the following chunk.
+Do not run this, but DO run `readRDS` instead to load the precomputed taxonomic assignment file.
 
-```{r taxonomy-assignment}
-### Commented out for cloud-friendliness
-### taxa <- assignTaxonomy(seqtab.nochim, "../data/rdp_train_set_16.fa.gz", multithread=2)
-taxa <- readRDS(file.path(path, "..", "taxa.rds"))
-
+```{r}
+### Commented out for workshop-time-limit friendliness
+### taxa <- assignTaxonomy(seqtab_nochim, "../data/rdp_train_set_16.fa.gz", multithread=2)
+taxa <- readRDS(file.path(dataPath, "..", "taxa.rds"))
+class(taxa)
 ```
+
+For more discussion of taxonomic assignment with DADA2, see <https://benjjneb.github.io/dada2/assign.html>
 
 # Handoff to Phyloseq
 
-```{r phyloseq}
-library("phyloseq"); packageVersion("phyloseq")
-ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
-               tax_table(taxa))
+```{r}
+library("phyloseq")
+ps <- phyloseq(
+  otu_table(seqtab_nochim, taxa_are_rows = FALSE), tax_table(taxa)
+)
 ps
 
 # Some sanity checks
 nsamples(ps)
 get_taxa_unique(ps, "Family")
-
 ```
 
-## DADA OPTIONS: Big data, Pooling and Pyrosequencing
+# Extras
 
-# Big data: The tutorial dataset is small enough to easily load into memory. If your dataset exceeds available RAM, it is preferable to process samples one-by-one in a streaming fashion: see the [DADA2 Workflow on Big Data](bigdata.html) for an example.
+## DADA2 OPTIONS: Big data, Pooling and Pyrosequencing
 
-# Pooling
-Pooling can [increase sensitivity to rare per-sample variants](https://benjjneb.github.io/dada2/pool.html#pooling-for-sample-inference). Pseudo-pooling [approximates pooling in linear time](https://benjjneb.github.io/dada2/pseudo.html#pseudo-pooling).
+### Big data:
 
-# Pyrosequencing
-For pyrosequencing data (e.g. 454 or Ion Torrent) we recommend a slight change in the alignment parameters to better handle those technologies tendency to make homopolymer errors.
+The tutorial dataset is small enough to easily load into memory.
+If your dataset exceeds available RAM, it is preferable to process samples one-by-one in a streaming fashion: see the [DADA2 Workflow on Big Data](bigdata.html) for an example.
 
-```{r pyro, eval=FALSE}
-# THIS IS JUST AN EXAMPLE OF THE SETTINGS ONE WOULD WANT TO USE FOR PYROSEQUENCED DATA
+### Pooling
 
-# DO NOT RUN AS PART OF THIS LAB
-
-# foo <- dada(..., HOMOPOLYMER_GAP_PENALTY=-1, BAND_SIZE=32)
-```
+Pooling can [increase sensitivity to rare per-sample variants](https://benjjneb.github.io/dada2/pool.html#pooling-for-sample-inference).
+Pseudo-pooling [approximates pooling in linear time](https://benjjneb.github.io/dada2/pseudo.html#pseudo-pooling).
 
 *The adventurous can see `?setDadaOpt` for more algorithmic parameters.*
+
+## Phylogenetic tree construction
+
+Instructions for constructing a phylogenetic tree for our ASVs can be found below.
+This process is reproduced from [Callahan 2016](https://f1000research.com/articles/5-1492/v2)
+
+Phylogenetic relatedness is commonly used to inform downstream analyses, especially the calculation of phylogeny-aware distances between microbial communities.
+The DADA2 sequence inference method is reference-free, so we must construct the phylogenetic tree relating the inferred sequence variants de novo.
+We begin by performing a multiple-alignment using the DECIPHER R package.
+
+``` r
+seqs <- getSequences(seqtab_nochim)
+names(seqs) <- seqs # This propagates to the tip labels of the tree
+alignment <- AlignSeqs(DNAStringSet(seqs), anchor = NA)
+```
+
+The `phangorn` R package is then used to construct a phylogenetic tree.
+Here we first construct a neighbor-joining tree, and then fit a GTR+G+I (Generalized time-reversible with Gamma rate variation) maximum likelihood tree using the neighbor-joining tree as a starting point.
+
+``` r
+phang.align <- phyDat(as(alignment, "matrix"), type = "DNA")
+dm <- dist.ml(phang.align)
+treeNJ <- NJ(dm) # Note, tip order != sequence order
+fit <- pml(treeNJ, data = phang.align)
+```
+
+``` r
+fitGTR <- update(fit, k = 4, inv = 0.2)
+fitGTR <- optim.pml(fitGTR,
+  model = "GTR", optInv = TRUE, optGamma = TRUE,
+  rearrangement = "stochastic", control = pml.control(trace = 0)
+)
+phy_tree(ps) <- fitGTR$tree
+```
