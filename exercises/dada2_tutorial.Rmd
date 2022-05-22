@@ -347,7 +347,7 @@ get_taxa_unique(ps, "Family")
 
 # Extras
 
-## DADA2 OPTIONS: Big data, Pooling and Pyrosequencing
+## DADA2 options: 
 
 ### Big data:
 
