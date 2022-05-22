@@ -60,9 +60,8 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 6, fig.height = 4, dpi = 120)
 
 -   20-30 min intro: me - microViz dev and PhD; the dataset(s); & our aims - with pics
 
-```{=html}
 <!-- -->
-```
+
 -   DADA2 denoising: Adapt the 2020 tutorial to my style and streamline/compress it.
 
 -   End on intro to phyloseq and microViz
@@ -77,9 +76,8 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 6, fig.height = 4, dpi = 120)
 
 -   Taxon filtering (prev. & abund.)
 
-```{=html}
 <!-- -->
-```
+
 -   Ordination plots and PERMANOVA
 
 #### Part D:
