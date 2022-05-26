@@ -1,0 +1,184 @@
+---
+title: "Diversity slides figure generation"
+author: "David Barnett"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
+---
+
+```{r message=FALSE}
+library(seriation)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(phyloseq)
+library(microViz)
+library(shiny)
+```
+
+```{r}
+mice <- readRDS(here::here('data/mice.rds'))
+load(here::here('data/shao19.rda'))
+shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+```
+
+Okay, so how do we look at the microbiota abundance data?
+To do this, we're going to use the R package `microViz`
+
+Lets take a very small subset of this data to get started, just the control group at day 13.
+
+```{r}
+# We can filter the samples like this, using the sample_data information
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle')
+```
+
+<!-- Probably move this didactic process of making bad to better plots to the slides only. -->
+
+<!-- Align the plots with patchwork and fade through them in presentation -->
+
+```{r}
+miceBarplotList <- list()
+```
+
+
+```{r message=FALSE, warning=FALSE}
+miceBarplotList[['bad']] <-
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, bar_width = 0.7,
+    sample_order = 'asis', tax_transform_for_plot = 'identity'
+  ) +
+  coord_flip()
+```
+
+Rats.
+What is this junk?
+The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table.
+
+The total number of reads also varies a lot between samples!
+The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample.
+So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
+
+```{r}
+miceBarplotList[['comp']] <- 
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
+  ) +
+  coord_flip()
+```
+
+Let's look at the taxonomy table first.
+
+```{r}
+# tax_fix_interactive(mice) # run this in the R Console for an interactive look
+```
+
+Looks like we just need to fill in some blank cells when a sequence was not classified at genus or family.
+tax_fix can do this, it just copies down info from a higher rank classification.
+Let's update our `mice` phyloseq object with this fix.
+
+```{r}
+mice <- tax_fix(mice, verbose = FALSE)
+```
+
+We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are. 
+
+```{r}
+mice %>% taxa_names() %>% head
+mice <- tax_rename(mice, rank = 'Family')
+mice %>% taxa_names() %>% head
+```
+
+Let's try again with the better names.
+
+```{r}
+miceBarplotList[['named']] <-
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
+    ) +
+  coord_flip()
+```
+
+Sadly we don't have enough distinct colours to show all the unique taxa.
+
+```{r}
+miceBarplotList[['unique']] <- 
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7,
+    merge_other = FALSE
+    ) +
+  coord_flip()
+```
+
+So let's "aggregate" all the counts into family-level groups.
+
+```{r}
+miceBarplotList[['family']] <- 
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 10, bar_width = 0.7, sample_order = 'asis'
+  ) +
+  coord_flip()
+```
+
+By aggregating at family level, we have sacrificed taxonomic resolution, compared to using ASVs.
+But this way we can get an idea of which families are the most abundant, and how variable the communities are.
+
+Try making some similar plots aggregated at different taxonomic ranks.
+
+Change the `tax_level` argument.
+
+```{r}
+# mice %>%
+#   ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+#   comp_barplot(tax_level = , n_taxa = 10, sample_order = 'asis', merge_other = FALSE)
+```
+
+```{r}
+miceBarplotList[['genus']] <- 
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  comp_barplot(
+    tax_level = "Genus", n_taxa = 12, bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) +
+  coord_flip()
+```
+
+Many of the ASVs in this mice data, the *Porphyromonadaceae*, could not be classified at genus level.
+
+```{r}
+miceBarplotList[['phylum']] <- 
+  mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  comp_barplot(
+    tax_level = "Phylum", n_taxa = 7, bar_width = 0.7, sample_order = 'asis'
+  ) +
+  coord_flip()
+```
+
+A note on phylum names!
+There have been major changes this year and some of these are now old names.
+Most published research is of course with the old names (and still probably will be for a year or so).
+
+INSERT NAME CONVERSION TABLE.
+
+```{r}
+saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = 'hv'), file = here::here('slides/data/barplots.rds'))
+```
+
+

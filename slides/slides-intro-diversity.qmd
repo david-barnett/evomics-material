@@ -1,0 +1,399 @@
+---
+title: "Microbiome Data analysis with microViz"
+author: "David Barnett"
+format: 
+  revealjs:
+    theme: dark
+    transition: fade
+    slide-number: true
+    scrollable: true
+    pause: false
+    fig-responsive: false
+    history: false
+editor: visual
+---
+
+```{r message=FALSE}
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(cowplot)
+library(phyloseq)
+library(microViz)
+library(shiny)
+```
+
+```{r}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 120)
+miceBars <- readRDS(here::here('slides/data/barplots.rds'))
+options(width = 500)
+```
+
+## Intro to phyloseq
+
+<br>
+
+phyloseq S4 object of processed microbiota data from the mouse study
+
+```{r}
+#| echo: true
+mice <- readRDS(here::here('data/mice.rds'))
+```
+
+<br>
+
+::: fragment
+Printed object shows you functions to access the data inside!
+
+```{r}
+#| echo: true
+mice
+```
+:::
+
+## Taxonomy table
+
+```{r}
+#| echo: true
+#| output-location: fragment
+tax_table(mice) %>% head(15)
+```
+
+## OTU table {.smaller}
+
+```{r}
+#| echo: true
+otu_table(mice)[1:8, 1:8]
+```
+
+::: fragment
+You can also use the \@ symbol.
+
+```{r}
+#| echo: true
+mice@otu_table[1:8, 1:8] # the same result
+```
+:::
+
+## Sample data (a.k.a. metadata) {.smaller}
+
+<br>
+
+```{r}
+#| echo: true
+sample_data(mice)[1:15, 1:10]
+```
+
+## 
+
+Ranks
+
+```{r}
+#| echo: true
+rank_names(mice)
+```
+
+Taxa
+
+```{r}
+#| echo: true
+taxa_names(mice) %>% head() 
+```
+
+Samples
+
+```{r}
+#| echo: true
+sample_names(mice) %>% head() 
+```
+
+Variables
+
+```{r}
+#| echo: true
+sample_variables(mice)
+```
+
+## Cheat code {transition="convex-out"}
+
+``` r
+View(mice)
+```
+
+# Seeing is believing {transition="convex-in convex-out"}
+
+Get a feel for your data, by making simple plots.
+
+We're going to use the package `microViz`
+
+::: notes
+Okay, so how do we look at the microbiota abundance data?
+:::
+
+## Data subsetting {transition="convex"}
+
+We can subset the samples using the sample_data info
+
+```{r}
+#| echo: true
+miceSubset <- mice %>% ps_filter(
+  treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle"
+)
+miceSubset
+```
+
+::: notes
+Lets take a very small subset of this data to get started, just the control group at day 13.
+:::
+
+## Basic bar plots {.smaller transition="fade"}
+
+``` r
+miceSubset %>% comp_barplot(
+  tax_level = "unique", n_taxa = 12, bar_width = 0.7,
+  sample_order = "asis", tax_transform_for_plot = "identity"
+) + coord_flip()
+```
+
+```{r}
+miceBars$bad %>% ggdraw()
+```
+
+::: notes
+Rats.
+What is this junk?!
+The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table.
+The total number of reads also varies a lot between samples!
+:::
+
+## Proportional bar plots {.smaller transition="fade"}
+
+``` r
+miceSubset %>% comp_barplot(
+  tax_level = "unique", n_taxa = 12, bar_width = 0.7,
+  sample_order = "asis"
+) + coord_flip()
+```
+
+```{r}
+miceBars$comp %>% ggdraw()
+```
+
+::: notes
+**Total reads != biomass** --\> Plot proportions The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample.
+So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
+:::
+
+```{r}
+mice <- tax_fix(mice, verbose = FALSE)
+mice <- tax_rename(mice, rank = 'Family')
+miceSubset <- mice %>% 
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle")
+```
+
+## Proportional bar plot - better names {.smaller transition="fade"}
+
+``` r
+miceSubset %>% comp_barplot(
+  tax_level = 'unique', n_taxa = 12, bar_width = 0.7,
+  sample_order = 'asis'
+) + coord_flip()
+```
+
+```{r}
+miceBars$named %>% ggdraw()
+```
+
+::: notes
+We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are.
+:::
+
+## Proportional bar plot - all ASVs {.smaller transition="fade"}
+
+``` r
+miceSubset %>% comp_barplot(
+  tax_level = 'unique', n_taxa = 12, bar_width = 0.7,
+  sample_order = 'asis', merge_other = FALSE
+) + coord_flip()
+```
+
+```{r}
+miceBars$unique %>% ggdraw()
+```
+
+::: notes
+Sadly we don't have enough distinct colours to show all the unique taxa.
+:::
+
+## Aggregated bar plot - Families {.smaller transition="fade"}
+
+``` r
+miceSubset %>% comp_barplot(
+  tax_level = "Family", n_taxa = 10, bar_width = 0.7, 
+  sample_order = 'asis'
+) + coord_flip()
+```
+
+```{r}
+miceBars$family %>% ggdraw()
+```
+
+::: notes
+So let's "aggregate" all the counts into family-level groups.
+By aggregating at family level, we have sacrificed taxonomic resolution, compared to using ASVs.
+But this way we can get an idea of which families are the most abundant, and how variable the communities are.
+Try making some similar plots aggregated at different taxonomic ranks.
+Change the `tax_level` argument.
+:::
+
+## Aggregated bar plot - Genera {.smaller transition="fade"}
+
+``` r
+miceSubset %>% comp_barplot(
+    tax_level = "Genus", n_taxa = 12, bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) + coord_flip()
+```
+
+```{r}
+miceBars$genus %>% ggdraw()
+```
+
+::: notes
+Many of the ASVs in this mice data, the *Porphyromonadaceae*, could not be classified at genus level.
+:::
+
+## Aggregated bar plot - Phyla {.smaller transition="fade-in convex-out"}
+
+``` r
+miceSubset %>% comp_barplot(
+    tax_level = "Phylum", n_taxa = 7, bar_width = 0.7, 
+    sample_order = 'asis'
+  ) + coord_flip()
+```
+
+```{r}
+miceBars$phylum %>% ggdraw()
+```
+
+::: notes
+A note on phylum names!
+There have been major changes this year and some of these are now old names.
+Most published research is of course with the old names (and still probably will be for a year or so).
+:::
+
+## Phylum name changes! {transition="convex"}
+
+::: incremental
+-   *Actinobacteria* is now *Actinomycetota*
+-   *Bacteroidetes* is now *Bacteroidota*
+-   *Proteobacteria* is now *Pseudomonadota* (!)
+-   *Firmicutes* is now *Bacillota* (!?!)
+:::
+
+::: notes
+A note on phylum names!
+There have been major changes this year and some of these are now old names.
+Most published research is of course with the old names (and still probably will be for a year or so).
+:::
+
+# Alpha diversity {transition="convex-in convex-out"}
+
+How diverse is the bacterial microbiome of each sample?
+
+## Why is diversity interesting?
+
+<br>
+
+#### Biologically
+
+-   Diverse == healthy, resilient, good (?)
+
+<br>
+
+#### Practically
+
+-   Summarize an ecosystem in one number: easy to compare
+
+::: notes
+-   Lower gut microbiome diversity is related to worse health in adult humans.
+-   Higher diversity ecosystems are often considered healthier, more mature, and more resilient to perturbation.
+-   BUT: diverse == healthy does not hold for all ecosystems, e.g. early infant gut microbiome, so consider your own data and hypotheses carefully.
+:::
+
+# Quantifying diversity? {transition="convex"}
+
+## Observed Richness
+
+```{r}
+#| out-width: '6.6in'
+#| out-height: '4.4in'
+mice %>% 
+  ps_calc_richness(rank = 'Family', index = 'observed', varname = 'N') %>%
+  ps_dedupe(vars = "N", method = 'first', verbose = FALSE) %>% 
+  ps_filter(N %% 2 == 1) %>% 
+  ps_arrange(desc(N)) %>% 
+  comp_barplot(
+    tax_level = "Family", n_taxa = 13, label = 'N', bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) + coord_flip()
+```
+
+The more the merrier.
+Just counting.
+$N = N$.
+
+::: notes
+The simplest measure is just counting, aka "Observed Richness".
+Let's compute the observed richness and label each sample with it.
+:::
+
+## Diversity - Shannon index (H)
+
+```{r}
+#| out-height: '4.4in'
+#| out-width: '6.6in'
+mice %>% 
+  ps_calc_richness(rank = 'Family', index = 'observed', varname = 'N') %>%
+  ps_calc_diversity(rank = 'Family', index = 'shannon', varname = 'shannon') %>% 
+  ps_dedupe(vars = "N", method = 'first', verbose = FALSE) %>% 
+  ps_filter(N %% 2 == 1) %>% 
+  ps_arrange(desc(shannon)) %>% 
+  ps_mutate(shannon = sprintf("%.1f", shannon)) %>% 
+  comp_barplot(
+    tax_level = "Family", n_taxa = 13, label = 'shannon', bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) + coord_flip()
+```
+
+Richness AND evenness matter.
+$H = -\sum_{i=1}^Np_i\log p_i$
+
+::: notes
+Shannon index often is H, p is proportion, Shannon index, TODO: describe Shannon index and exp shannon.
+:::
+
+## Diversity - Effective numbers
+
+```{r}
+#| out-height: '4.4in'
+#| out-width: '6.6in'
+mice %>% 
+  ps_calc_richness(rank = 'Family', index = 'observed', varname = 'N') %>%
+  ps_calc_diversity(rank = 'Family', index = 'shannon', varname = 'shannon') %>% 
+  ps_dedupe(vars = "N", method = 'first', verbose = FALSE) %>% 
+  ps_filter(N %% 2 == 1) %>% 
+  ps_arrange(desc(shannon)) %>% 
+  ps_mutate(shannon = round(exp(shannon))) %>% 
+  comp_barplot(
+    tax_level = "Family", n_taxa = 13, label = 'shannon', bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) + coord_flip()
+```
+
+$e^H = N$ if all taxa were equally abundant.
+
+## Evenness
+
+To do?
+Simpson, I didn't write a convenient ps_calc\_\* function for this yet so use, microbiome package directly...
