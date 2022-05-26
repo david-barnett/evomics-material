@@ -1,0 +1,439 @@
+---
+title: "Microbiome data analysis with microViz"
+subtitle: "Dissimilarity"
+author: "David Barnett"
+format: 
+  revealjs:
+    theme: dark
+    transition: fade
+    slide-number: true
+    scrollable: true
+    pause: false
+    fig-responsive: false
+    history: false
+editor: visual
+---
+
+```{r message=FALSE}
+library(seriation)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(cowplot)
+library(phyloseq)
+library(microViz)
+```
+
+```{r}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 120)
+options(width = 500)
+load(here::here('data/shao19.rda'))
+shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+```
+
+## From Diversity to Dissimilarity
+
+::: incremental 
+
+- **Alpha diversity**: 
+    - Summarizing one sample
+    - *"How diverse is this ecosystem?"*
+
+<br>
+
+- **Dissimilarity**: 
+    - Comparing a pair of samples
+    - *"How different are these two ecosystems?"*
+
+:::
+
+## A new dataset
+
+<br> 
+
+```{r}
+#| echo: true
+shao19
+```
+
+<br>
+
+- Infant gut microbiome cohort study: Shao et al. 2019
+- Shotgun metagenomic sequencing data: Illumina HiSeq 
+- Species resolution taxonomy: metaphlan3
+
+
+::: notes
+New dataset gives you another chance to practice examining and manipulating phyloseq object.
+Also shows you that despite a different data generation and processing method, the analyses approaches you are learning today are still applicable.
+
+We won't talk about how metaphlan3 works, but the documentation is very good. In short, the devs inferred a database of many different marker sequences unique to each species, and by counting the number of times those markers are found in your shotgun metagenomic data, species composition is inferred.
+:::
+
+## What is dissimilarity? {.smaller transition="convex-in fade-out"}
+
+```{r}
+shaoSubset <- shao19 %>% 
+  ps_filter(family_role == "child", infant_age > 20, sex == "female")
+set.seed(321); randomSubset <- sample(nsamples(shaoSubset), size = 30)
+sample_data(shaoSubset) <- sample_data(shaoSubset)[randomSubset, ]
+```
+
+```{r}
+#| echo: true
+shaoSubset %>% comp_barplot("genus", n_taxa = 13, sample_order = 'asis', merge_other = FALSE, label = NULL) 
+```
+
+::: notes
+By looking at the compositional bar charts, you can spot that some samples look quite similar and some look quite different.
+In the last session before dinner, you might have noticed that by default comp_barplot orders the samples in a nicer way with similar looking ones closer together. 
+:::
+
+## What is dissimilarity? {.smaller}
+
+```{r}
+#| echo: true
+shaoSubset %>% comp_barplot("genus", n_taxa = 13, sample_order = "bray", merge_other = FALSE, label = NULL) 
+```
+
+::: notes 
+How does it decide on this order??! We need some way to quantify how similar or dissimilar two ecosystems / two samples are.
+Hands up who has heard of dissimilarity measures? or distance measures maybe?
+:::
+
+# Quantifying dissimilarity? {transition="convex"}
+
+- There are many ways
+- We'll look at a few popular ones
+
+```{r}
+# set up tiny dataset
+shao3 <- shaoSubset %>% 
+  ps_mutate(id = sample_names(shaoSubset)) %>% 
+  # ps_filter(id %in% c("A02146_ba_21", "C02345_ba_221", "A01077_ba_21"))
+  # ps_filter(id %in% c("B01406_ba_337", "B02255_ba_21", "B01600_ba_21"))
+  ps_filter(id %in% c("B00046_ba_21", "C02345_ba_221", "C01530_ba_324"))
+sample_names(shao3) <- c("X", "Y", "Z")
+```
+
+## Dissimilarity measures - qualitative {auto-animate=true}
+
+:::: {.columns}
+
+
+::: {.column width="70%"}
+
+```r
+shao3 %>% 
+  tax_agg("genus") %>% 
+  tax_transform("binary") %>% 
+  dist_calc("jaccard") 
+```
+<br>
+
+**Binary Jaccard**: $J = 1 - \frac{N_{shared}}{N_{total}}$ 
+  
+- N is the number of taxa
+- Qualitative: Ignores abundance
+- Sensitive to uncommon taxa
+
+::: 
+::: {.column width="27%"}
+
+```{r}
+shao3j <- shao3 %>% tax_transform(trans = "binary", rank = "genus") %>% dist_calc("jaccard") 
+shao3j %>% dist_get() %>% print(diag = TRUE, digits = 2)
+```
+
+```{r, fig.width=2.5, fig.height=4}
+shao3 %>% comp_barplot(
+  tax_level = 'genus', n_taxa = 13, merge_other = FALSE, 
+  bar_width = 0.7, sample_order = "asis"
+) + 
+  theme(legend.position = "none", axis.text.x = element_text(size = 16))
+```
+
+:::
+::::
+
+## Dissimilarity measures - quantitative {auto-animate=true}
+
+::::: {.columns}
+
+:::: {.column width="70%"}
+
+```r
+shao3 %>% 
+  tax_agg("genus") %>% 
+  dist_calc("bray") 
+```
+
+<br>
+
+**Bray-Curtis**: $BC = 1 - \frac{2W}{A+B}$
+
+- A + B is total readcount of both samples
+- W is sum of lesser counts of each taxon
+- Quantitative: Abundance-weighted
+
+:::: 
+:::: {.column width="27%"}
+
+```{r}
+shao3_bray <- shao3 %>% tax_agg(rank = "genus") %>% dist_calc("bray") 
+shao3_bray %>% dist_get() %>% print(diag = TRUE, digits = 2)
+```
+
+```{r, fig.width=2.5, fig.height=4}
+shao3 %>% comp_barplot(
+  tax_level = 'genus', n_taxa = 13, merge_other = FALSE, 
+  bar_width = 0.7, sample_order = "asis"
+) + 
+  theme(legend.position = "none", axis.text.x = element_text(size = 16))
+```
+
+::::
+:::::
+
+::: notes
+https://www.davidzeleny.net/anadat-r/doku.php/en:similarity
+Has good details.
+
+This is manual calculation of BC between samples X and Y.
+`shao3 %>% tax_transform('identity', "genus") %>% otu_get() %>% t() %>% as.data.frame() %>% mutate(min = pmin(X, Y)) %>% summarise(W = sum(min), A = sum(X), B = sum(Y)) %>% summarise(PS = 2*W / (A + B). BC = 1 - PS)`
+:::
+
+## Dissimilarity measures - phylogenetic {background-color="white" .smaller}
+
+**UniFrac distance**: Fraction of the branch length of the phylogenetic tree
+that leads to taxa from either one environment (sample) or the other, but not both.
+
+![](images/lozupone-unifrac.jpg)
+
+*Lozupone and Knight 2005*
+
+## Dissimilarity measures - phylogenetic {background-color="white" .smaller transition="fade-in convex-out"}
+
+- **Weighted UniFrac distance**: branch lengths are weighted by the relative abundance of sequences each community (sample)
+- **Generalized UniFrac** (not shown): partial abundance weighting - *Chen et al. 2012*
+
+![](images/lozupone-weighted-unifrac.jpeg)
+
+*Lozupone et al. 2007*
+
+::: notes
+In example: Square sequences are weighted twice as much as circle sequences because there are twice as many total **circle** sequences in the dataset.
+:::
+
+# Why quantify dissimilarity? {transition="convex"}
+
+- To put our samples in order
+- This helps us see patterns in our data
+- But we can do more than just sort a bar chart!
+
+
+## Ordination with PCoA {.smaller auto-animate=true}
+
+#### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
+
+From distance matrix to new dimensions 
+
+```{r}
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  dist_get() %>% 
+  as.matrix() %>% 
+  .[1:12, 1:8]
+```
+
+## Ordination with PCoA {.smaller auto-animate=true}
+
+#### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
+
+From distance matrix to new dimensions 
+
+```{r, fig.width=5, fig.height=4.5}
+#| output-location: column
+#| echo: true
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(
+    alpha = 0.6, size = 3
+  ) +
+  theme_classic(12) +
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2))
+```
+
+::: notes
+PCoA interpretation: - ordination method attempts to preserve the original pairwise distances between samples.
+So closer samples have 
+:::
+
+## Ordination with PCoA {.smaller auto-animate=true}
+
+#### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
+
+From distance matrix to new dimensions 
+
+```{r, fig.width=5, fig.height=4.5}
+#| output-location: column
+#| echo: true
+shaoSubset %>% 
+  ps_calc_dominant(
+    rank = "genus", n_max = 2, var = "Top_Genus", threshold = 0.2
+  ) %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(
+    alpha = 0.6, size = 3, color = "Top_Genus"
+  ) +
+  theme_classic(12) + 
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  theme(
+    legend.position = c(0.175, 0.8), 
+    legend.background = element_rect(colour = "black")
+  )
+```
+
+## Ordination with PCoA {.smaller auto-animate=true}
+
+#### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
+
+From distance matrix to new dimensions 
+
+```{r, fig.width=5, fig.height=4.5}
+#| output-location: column
+#| echo: true
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(
+    alpha = 0.6, size = 3, color = "birth_mode"
+  ) +
+  theme_classic(12) + 
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  theme(
+    legend.position = c(0.175, 0.8), 
+    legend.background = element_rect(colour = "black")
+  )
+```
+
+## Ordination with PCoA {.smaller auto-animate=true}
+
+#### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
+
+From distance matrix to new dimensions 
+
+```{r, fig.width=5, fig.height=4.5}
+#| output-location: column
+#| echo: true
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(
+    alpha = 0.6, size = 3, color = "birth_mode"
+  ) +
+  theme_classic(12) + 
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  theme(
+    legend.position = c(0.175, 0.8), 
+    legend.background = element_rect(colour = "black")
+  ) +
+  stat_ellipse(aes(color = birth_mode))
+```
+
+
+## PERMANOVA {.smaller}
+
+- Permutational Multivariate ANOVA (ANOVA: ANalysis Of VAriance)
+- *Does the average microbiome composition differ by birth mode?*
+
+:::: {.columns}
+::: {.column width="45%"}
+
+```{r, fig.width=5, fig.height=4.5}
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(
+    alpha = 0.6, size = 3, color = "birth_mode"
+  ) +
+  theme_classic(12) + 
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  theme(
+    legend.position = c(0.175, 0.8), 
+    legend.background = element_rect(colour = "black")
+  ) +
+  stat_ellipse(aes(color = birth_mode))
+```
+
+:::
+::: {.column width="55%"}
+
+```{r}
+#| echo: true
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  dist_permanova(variables = "birth_mode") %>% 
+  perm_get()  %>% 
+  broom::tidy()
+```
+
+:::
+::::
+
+
+## Dimensionality reduction? {transition="convex" .smaller}
+
+- PCoA axes are ordered in decreasing amount of variation explained
+- Only use or look at the first few = "dimensionality reduction"
+
+```{r, fig.height=3, fig.width=6}
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_get() %>%
+  plot_scree() + 
+  geom_col(data = ~ filter(., axis %in% c("MDS1", "MDS2")), fill = "red") +
+  labs(y = "Variation explained", x = NULL) +
+  theme(panel.background = element_blank())
+```
+
+## Ordination - interactive {.smaller transition="convex-in fade-out"}
+
+This ordination thing is nice, but I can't see the compositions directly...
+
+```{r, fig.width=5, fig.height=4.5}
+shaoSubset %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(
+    alpha = 0.6, size = 3, color = "birth_mode"
+  ) +
+  theme_classic(12) + 
+  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  theme(
+    legend.position = c(0.175, 0.8), 
+    legend.background = element_rect(colour = "black")
+  ) +
+  stat_ellipse(aes(color = birth_mode))
+```
+
+## {transition="fade"}
+
+![](images/20210429_ord_explore_x175.gif)
+
+## Filtering taxa
+
+To be completed
+
