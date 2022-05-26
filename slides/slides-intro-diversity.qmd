@@ -1,6 +1,5 @@
 ---
 title: "Microbiome data analysis with microViz"
-subtitle: "Diversity"
 author: "David Barnett"
 format: 
   revealjs:
@@ -29,6 +28,8 @@ knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 120)
 options(width = 500)
 miceBars <- readRDS(here::here('slides/data/barplots.rds'))
 ```
+
+# Part 1: Diversity
 
 ## Intro to phyloseq
 

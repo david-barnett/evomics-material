@@ -86,7 +86,7 @@ library(shiny)
 ```{r}
 mice <- readRDS(here::here('data/mice.rds'))
 load(here::here('data/shao19.rda'))
-shao19 <- tax_fix(shao19) %>% tax_names2rank("species")
+shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
 ```
 
 <!-- For presentation slides: Describe the datasets. -->
@@ -127,20 +127,21 @@ This is a `phyloseq` S4 object, containing processed microbiota data from the mo
 
 **The mice data**
 
-The data originate from a study on the effects of oral antibiotic administration on flavivirus infection (https://www.ncbi.nlm.nih.gov/pubmed/29590614). Sequence data was generated from extracted nucleic acid from stool samples collected from individually caged mice and amplified using primers specific for the V4 region using primers 515F/806R.
+The data originate from a study on the effects of oral antibiotic administration on flavivirus infection (<https://www.ncbi.nlm.nih.gov/pubmed/29590614>).
+Sequence data was generated from extracted nucleic acid from stool samples collected from individually caged mice and amplified using primers specific for the V4 region using primers 515F/806R.
 
 The study followed flavivirus infection after the following treatments:
 
-1) Koolaid: Antibiotics are provided to the mice via their drinking water. As many of the antibiotics taste bad, koolaid is added as a sweetener Therefore, the appropriate control is water spiked and labelled *koolaid*.
-2) Ampicillin (Amp): https://en.wikipedia.org/wiki/Ampicillin
-3) Metronidazole (Met): https://en.wikipedia.org/wiki/Metronidazole
-4) Ampicillin + Metronidazole (Amp+Metro)
+1)  Koolaid: Antibiotics are provided to the mice via their drinking water. As many of the antibiotics taste bad, koolaid is added as a sweetener Therefore, the appropriate control is water spiked and labelled *koolaid*.
+2)  Ampicillin (Amp): <https://en.wikipedia.org/wiki/Ampicillin>
+3)  Metronidazole (Met): <https://en.wikipedia.org/wiki/Metronidazole>
+4)  Ampicillin + Metronidazole (Amp+Metro)
 
-Treatments were supplied ad libitum for 2 weeks prior to viral infection and maintained for 2 weeks post-infection. Primary outcome was mouse survival. Each treatment group had two subgroups of mice that were either a) left uninfected as controls or b) infected with West Nile Virus via a subcutaneous foot pad injection.
-
+Treatments were supplied ad libitum for 2 weeks prior to viral infection and maintained for 2 weeks post-infection.
+Primary outcome was mouse survival.
+Each treatment group had two subgroups of mice that were either a) left uninfected as controls or b) infected with West Nile Virus via a subcutaneous foot pad injection.
 
 </details>
-
 
 Get a little familiar with the object.
 What does it have in it?
@@ -155,7 +156,6 @@ mice
 # View(mice)
 ```
 
-
 ```{r}
 tax_table(mice) %>% head()
 ```
@@ -165,7 +165,7 @@ rank_names(mice)
 ```
 
 ```{r}
-otu_table(mice)[1:15, 1:10] 
+otu_table(mice)[1:15, 1:8] 
 # mice@otu_table[1:15, 1:10] # the same result
 ```
 
@@ -216,6 +216,15 @@ The total number of reads also varies a lot between samples!
 The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample.
 So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
 
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
+  ) +
+  coord_flip()
+```
+
 Let's look at the taxonomy table first.
 
 ```{r}
@@ -230,21 +239,12 @@ Let's update our `mice` phyloseq object with this fix.
 mice <- tax_fix(mice, verbose = FALSE)
 ```
 
-We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are. 
+We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are.
 
 ```{r}
 mice %>% taxa_names() %>% head
 mice <- tax_rename(mice, rank = 'Family')
 mice %>% taxa_names() %>% head
-```
-
-```{r}
-mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
-  comp_barplot(
-    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
-  ) +
-  coord_flip()
 ```
 
 Let's try again with the better names.
@@ -396,7 +396,6 @@ mice <- mice %>%
   ps_mutate(antibiotics = treatment %in% c("Amp", "Metro", "AmpMetro"))
 ```
 
-
 ```{r, fig.width=4, fig.height=2.5}
 mice %>% 
   ps_filter(treatment_days == 'D13') %>% 
@@ -445,7 +444,6 @@ What about richness?
 
 This is an extension exercise, for those who are moving quickly.
 
-
 **Inflammatory Bowel Disease study**
 
 ```{r}
@@ -454,8 +452,7 @@ ibd <- corncob::ibd_phylo %>%
   ps_mutate(disease = ibd == 'ibd', ibd = NULL) # adds disease state indicator variable
 ```
 
-`ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data,
-from a 2012 study of Inflammatory Bowel Disease in children and young adults.
+`ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data, from a 2012 study of Inflammatory Bowel Disease in children and young adults.
 
 It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs".
 
@@ -465,26 +462,25 @@ Have a look at the data, like we did before for the `mice` dataset.
 ibd
 ```
 
-
 ```{r}
 
 ```
 
-
-You can perform alpha diversity analysis: 
-Try comparing the alpha diversity of the IBD patients against the healthy controls.
+You can perform alpha diversity analysis: Try comparing the alpha diversity of the IBD patients against the healthy controls.
 
 ```{r}
 
 ```
-
 
 </details>
 
-
 <details>
 
-  <summary>**Click here for additional notes on richness and readcount**</summary>
+<summary>
+
+**Click here for additional notes on richness and readcount**
+
+</summary>
 
 **Additional notes on richness and readcount**
 
@@ -520,12 +516,11 @@ mice %>%
 1)  **Simple solution**: Ignore the problem. Whilst you can't interpret the richness of any individual sample as being correct, it is still usually valid to compare richness across groups of samples, as the readcount variation is only random noise, and should be uncorrelated with your grouping variable (but do check this).
 2)  **Harder solution**: Explore more rigorous methods like `breakaway` by Amy Willis and team. *TODO: INSERT LINK.*
 
-
 </details>
 
 ------------------------------------------------------------------------
 
-# DINNER BREAK 
+# DINNER BREAK
 
 ------------------------------------------------------------------------
 
@@ -977,7 +972,6 @@ shao4 %>%
 # Use more permutations for a more reliable p.value in your real work (slower)
 # Set a random seed number for reproducibility of this stochastic method
 ```
-
 
 ------------------------------------------------------------------------
 
