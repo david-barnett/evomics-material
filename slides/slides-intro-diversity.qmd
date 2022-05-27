@@ -13,6 +13,12 @@ format:
 editor: visual
 ---
 
+# Intro {transition="convex"}
+
+
+
+# Part 1: Diversity {transition="convex"}
+
 ```{r message=FALSE}
 library(dplyr)
 library(purrr)
@@ -20,7 +26,6 @@ library(ggplot2)
 library(cowplot)
 library(phyloseq)
 library(microViz)
-library(shiny)
 ```
 
 ```{r}
@@ -29,13 +34,12 @@ options(width = 500)
 miceBars <- readRDS(here::here('slides/data/barplots.rds'))
 ```
 
-# Part 1: Diversity
 
-## Intro to phyloseq
+## Intro to phyloseq {transition="convex"}
 
 <br>
 
-phyloseq S4 object of processed microbiota data from the mouse study
+phyloseq S4 object: processed mouse gut microbiota data
 
 ```{r}
 #| echo: true

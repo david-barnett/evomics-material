@@ -13,6 +13,8 @@ format:
 editor: visual
 ---
 
+# Part 2: Dissimilarity {transition="convex"}
+
 ```{r message=FALSE}
 library(seriation)
 library(dplyr)
@@ -30,7 +32,6 @@ load(here::here('data/shao19.rda'))
 shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
 ```
 
-# Part 2: Dissimilarity {transition="zoom-in convex-out"}
 
 ## From Diversity to Dissimilarity {transition="convex-in convex-out"}
 
