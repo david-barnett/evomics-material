@@ -1,0 +1,493 @@
+---
+title: "Microbiome data analysis with microViz"
+subtitle: "Dissimilarity, ordination, & filtering"
+author: "David Barnett"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 6, fig.height = 4, dpi = 120)
+```
+
+```{r message=FALSE}
+library(seriation)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(phyloseq)
+library(microViz)
+library(shiny)
+```
+
+```{r}
+mice <- readRDS(here::here('data/mice.rds'))
+load(here::here('data/shao19.rda'))
+shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+```
+
+
+# Beta diversity (part 1)
+
+So far, this has been relatively straightforward, at least conceptually.
+But there is a lot more interesting stuff we can do with microbiome data.
+
+We've looked at one sample at a time and calculated and compared simple summary measures of sample alpha-diversity.
+
+Alpha diversity is sometimes referred to as "within sample" diversity.
+
+Now we're going to look at "beta diversity", or "between sample" diversity.
+
+For this part we're going to swap to another dataset.
+So you get a little bit more practice examining a phyloseq object.
+Look at the rank names, sample data variables etc.
+
+```{r}
+shao19 # this object has another part!
+```
+
+```{r}
+#
+```
+
+## Filtering
+
+First, we need to talk about filtering.
+
+### Sample filtering
+
+You should check if any of your samples have a surprisingly low total number of (classified) reads.
+This can suggest that something went wrong in the lab (or during sample collection) and the data from this sample might be unreliable.
+
+You might already do this check for total reads and remove poor quality samples during the fastq file processing.
+
+```{r, fig.height=3, fig.width=6}
+shao19 %>% 
+  ps_mutate(reads = sample_sums(shao19)) %>% 
+  samdat_tbl() %>% 
+  ggplot(aes(x = reads)) + 
+  geom_freqpoly(bins = 500) +
+  geom_rug(alpha = 0.5) +
+  scale_x_log10(labels = scales::label_number()) +
+  labs(x = 'Number of classified reads', y = NULL) +
+  theme_bw()
+```
+
+How many is enough?
+There is no easy answer.
+
+These samples have great depth.
+There are a few with much less reads than the rest, and a few with under a million.
+You might consider dropping the samples with under a million reads, to see if it affects your results, but in this case we won't.
+
+But 100,000 is still a lot, compared to what older sequencing machines produced: 1000 reads might have been considered very good.
+So look at the distribution for your data, in case there are obvious outliers, and look at recent papers using a similar sequencing technique for what kind of threshold they used.
+
+There might also be relevant information for the type of sequencer you used on e.g.
+Illumina website.
+e.g. for this type of sequencing Illumina suggests you should expect at least a million reads (and this is good for RNA seq analyses).
+<https://support.illumina.com/bulletins/2017/04/considerations-for-rna-seq-read-length-and-coverage-.html>
+
+If you are interested, go back and recreate this plot with the 16S sequencing dataset `mice`.
+
+```{r, fig.height=3, fig.width=6}
+mice %>% 
+  ps_mutate(reads = sample_sums(.env$mice)) %>% 
+  samdat_tbl() %>% 
+  ggplot(aes(x = reads)) + 
+  geom_freqpoly(bins = 30) +
+  geom_rug(alpha = 0.5) +
+  scale_x_log10(labels = scales::label_number()) +
+  labs(x = 'Number of classified reads', y = NULL) +
+  theme_bw()
+```
+
+### Taxon filtering
+
+Okay, so we might remove "bad" samples, but how can a taxon be "bad"?
+
+We probably want to filter out **rare** taxa, before performing some kinds of analysis.
+
+#### Why remove rare taxa?
+
+**Rare taxa might be:**
+
+1.  Sequencing errors
+2.  Statistically problematic
+3.  Biologically irrelevant
+
+**More elaboration for presentation/discussion**
+
+1.  Rare taxa might be erroneous: sequencing errors, chimeric sequences...
+
+2.  Statistical challenges:
+
+    -   There are often A LOT of different rare taxa
+        -   Sparsity, lots of zeros
+        -   Noise, more measurement error in very low abundance taxa
+        -   Multiple comparisons (we'll get to that later)
+    -   Having many many taxa in your dataset can really slow down some analyses!
+
+    TODO: COMPLETE
+
+3.  Biological (ir)relevance:
+
+    -   For many (most?) microbiome research questions, rare taxa are less likely to be relevant
+    -   For common host health problems and the human/animal microbiome, if a taxon only occurs in every 100th person, it is less likely to be relevant to risk common disease outcomes (?)
+
+I'm sure one can think of many cases where rare taxa are biologically relevant, but problems 1 and 2 are still there.
+
+#### How to remove rare taxa?
+
+**What is rare?** Two main concepts.
+
+-   Low **prevalence** - taxon only detected in a small number of samples in your dataset.
+-   Low **abundance** - relatively few reads assigned to that taxon (on average or in total)
+
+Consider the impact of issues 1, 2, and 3.
+Let's say we are not interested in unique taxa that occur in fewer than 2% of samples, and they have to have at least 10,000 reads in total across all samples.
+
+```{r}
+# before filtering
+ntaxa(shao19)
+
+# after filtering
+shao19 %>% 
+  tax_filter(min_prevalence = 2 / 100, min_total_abundance = 10000) %>% 
+  ntaxa()
+```
+
+Wow so that would remove **most** of our unique taxa!
+What is going on?
+Let's make some plots!
+
+```{r}
+# make table of summary statistics for the unique taxa in shao19
+shaoTaxaStats <- tibble(
+  taxon = taxa_names(shao19),
+  prevalence = microbiome::prevalence(shao19),
+  total_abundance = taxa_sums(shao19)
+)
+```
+
+```{r}
+p <- shaoTaxaStats %>% 
+  ggplot(aes(total_abundance, prevalence)) + 
+  geom_point(alpha = 0.5) +
+  geom_rug(alpha = 0.1) +
+  scale_x_continuous(labels = scales::label_number(), name = 'Total Abundance') + 
+  scale_y_continuous(
+    labels = scales::label_percent(), breaks = scales::breaks_pretty(n = 9),
+    name = "Prevalence (%)",
+    sec.axis = sec_axis(
+      trans = ~ . * nsamples(shao19), breaks = scales::breaks_pretty(n = 9),
+      name = "Prevalence (N samples)"
+    )
+  ) +
+  theme_bw()
+p
+```
+
+So most taxa have a low prevalence, and handful have way more reads than most.
+
+Let's quickly label those plots to check which taxa are the big time players.
+
+```{r}
+p + ggrepel::geom_text_repel(
+  data = function(df) filter(df, total_abundance > 1e9 | prevalence > 0.6),
+  mapping = aes(label = taxon), size = 2.5, min.segment.length = 0, force = 15
+)
+```
+
+That makes sense for this dataset of mostly infant gut microbiome samples.
+
+Now let's zoom in on the less abundant taxa by log-transforming the axes.
+We'll also add lines indicating the thresholds of 2% prevalence and 10000 reads abundance.
+
+```{r}
+shaoTaxaStats %>% 
+  ggplot(aes(total_abundance, prevalence)) + 
+  geom_vline(xintercept = 10000, color = 'red', linetype = 'dotted') +
+  geom_hline(yintercept = 2/100, color = 'red', linetype = 'dotted') +
+  geom_point(alpha = 0.5) +
+  geom_rug(alpha = 0.1) +
+  scale_x_log10(labels = scales::label_number(), name = 'Total Abundance') + 
+  scale_y_log10(
+    labels = scales::label_percent(), breaks = scales::breaks_log(n = 9),
+    name = "Prevalence (%)",
+    sec.axis = sec_axis(
+      trans = ~ . * nsamples(shao19), breaks = scales::breaks_log(n = 9),
+      name = "Prevalence (N samples)"
+    )
+  ) +
+  theme_bw()
+```
+
+We can break this down by phylum if we add the taxonomic table information.
+
+```{r, fig.height = 5, fig.width=8}
+# don't worry about this code if it's confusing, just focus on the plot output
+shao19 %>% 
+  tax_table() %>% 
+  as.data.frame() %>% 
+  as_tibble(rownames = 'taxon') %>% 
+  left_join(shaoTaxaStats, by = "taxon") %>% 
+  add_count(phylum, name = 'phylum_count', sort = TRUE) %>% 
+  mutate(phylum = factor(phylum, levels = unique(phylum))) %>% # to fix facet order
+  mutate(phylum = forcats::fct_lump_n(phylum, n = 5) %>% forcats::fct_explicit_na('Other')) %>% 
+  ggplot(aes(total_abundance, prevalence)) +
+  geom_vline(xintercept = 10000, color = 'red', linetype = 'dotted') +
+  geom_hline(yintercept = 2/100, color = 'red', linetype = 'dotted') +
+  geom_point(alpha = 0.5, size = 1) +
+  geom_rug(alpha = 0.2) +
+  scale_x_log10(
+    labels = scales::label_log(), breaks = scales::breaks_log(n = 5),
+    name = 'Total Abundance'
+  ) + 
+  scale_y_log10(
+    labels = scales::label_percent(), breaks = scales::breaks_log(n = 9),
+    name = "Prevalence (%)",
+    sec.axis = sec_axis(
+      trans = ~ . * nsamples(shao19), breaks = scales::breaks_log(n = 9),
+      name = "Prevalence (N samples)"
+    )
+  ) +
+  facet_wrap('phylum') + 
+  theme_bw(10)
+```
+
+**How to pick a threshold?**
+
+Depends on what analysis method you are filtering for!
+
+-   alpha diversity = DO NOT FILTER
+-   beta diversity = relevance of threshold depends on your distance measure (next topic!)
+-   differential abundance testing = stringent filtering, prevalence \>5%, \>10%? (last topic!)
+
+## Dissimilarity measures
+
+TODO: Slides on different dissimilarity measures.
+
+What are we doing?
+Calculating the dissimilarity of two samples' compositions.
+
+[Visualize distance heatmaps?]
+
+-   Binary Jaccard
+-   Bray-Curtis
+-   UniFrac distances (unweighted, weighted, generalised)
+
+To simplify and speed up the analyses, we're going to take a smaller part of the dataset.
+We'll only look at the 300 infant fecal samples from 4 days of age.
+
+```{r}
+shao4 <- shao19 %>% ps_filter(family_role == 'child', infant_age == 4) 
+```
+
+We're going to filter out rare taxa quite strictly, for similar reasons.
+But we won't overwrite our smaller dataset: we'll do the filtering per analysis.
+
+```{r}
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100) %>% 
+  tax_agg(rank = 'genus') %>% 
+  tax_transform('binary') %>% # converts counts to absence/presence: 0/1
+  dist_calc(dist = 'jaccard') 
+```
+
+Talk about the output we see here.
+Then look at the distance matrix.
+
+```{r}
+distances <- shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  tax_agg(rank = 'genus') %>% 
+  tax_transform('binary') %>%
+  dist_calc(dist = 'jaccard') %>% 
+  dist_get() 
+
+as.matrix(distances)[1:5, 1:5]
+
+range(distances)
+```
+
+## Ordination
+
+What do we do with these distances or dissimilarities?
+We make an ordination.
+
+Ordination refers to the process of ordering things (in our case: samples), so that similar things (samples) are closer to each other, and dissimilar things (samples) are further away.
+
+### PCoA
+
+Principal Co-ordinates Analysis is one kind of ordination.
+
+Takes distance matrix and finds new dimensions (a co-ordinate system if you like)
+
+More details this works
+
+```{r}
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(alpha = 0.6, size = 2) +
+  theme_classic(12) +
+  coord_fixed(0.7)
+```
+
+To get a little insight into what the happened here, we can colour each sample according to its dominant (most abundant) genus.
+
+```{r}
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  ps_calc_dominant(rank = 'genus', none = "Mixed", other = "Other") %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(color = "dominant_genus", alpha = 0.6, size = 2) +
+  scale_color_brewer(name = "Dominant Genus", palette = 'Dark2') +
+  theme_classic(12) +
+  coord_fixed(0.7)
+```
+
+### Interactive ordination!
+
+`microViz` provides a Shiny app `ord_explore` to interactively create and explore PCoA plots and other ordinations.
+See the code below to get started.
+
+**Here are a few things to try:**
+
+-   Colour the samples using the variables in the sample data
+-   Select a few samples to view their composition on barplots!
+-   Change some ordination options:
+    -   Different rank of taxonomic aggregation
+    -   Different distances we've discussed
+-   Copy the automatically generated code
+    -   Exit the app (press escape or click red button in R console!)
+    -   Paste and run the code to recreate the ordination plot
+    -   Customise the plot: change colour scheme, title, etc.
+-   Launch the app again with a different subset of the data
+    -   Practice using `ps_filter` etc.
+    -   e.g. plot the data of the mothers' gut microbiomes!
+    -   compute one or more alpha diversity measures
+
+**Beware:**
+
+-   UniFrac distances can be quite slow (over a minute) to calculate!
+    -   Filter to fewer samples and fewer taxa to speed it up (Before launching the app)
+-   There are many distances available, feel free to try out ones we haven't talked about
+    -   BUT:
+        -   You shouldn't use a distance that you don't understand in your actual work, even if the plot looks nice! ;)
+        -   Some of them might not work...
+            -   They are mostly implemented in the package `vegan` and I haven't tested them all
+            -   Errors will appear in the RStudio R console
+            -   You can report to me any distances that don't work if you're feeling helpful!
+-   There are other ordination methods available in `ord_explore`, which we haven't discussed
+    -   We will discuss PCA and various transformations after dinner!
+    -   Some things we won't have time to cover, but you can look here for info on topics like constrained ordination --\> TODO: insert gusta me ecology website link
+
+``` r
+# fire up the shiny app
+# run these lines in your console
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  # calculate new sample variables with dominant taxon (optional)
+  ps_calc_dominant(rank = 'genus', none = "Mixed", other = "Other") %>% 
+  # launch a Shiny app in your web browser!
+  ord_explore()
+```
+
+``` r
+# different options
+# run this line in your console
+shao19 %>% 
+  ps_filter(family_role == 'mother') %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  # calculate a few sample variables for interest (optional)
+  ps_calc_dominant(rank = 'genus', none = "Mixed", other = "Other") %>% 
+  ps_calc_diversity(rank = 'genus', index = 'shannon') %>% 
+  ps_calc_richness(rank = 'genus', index = 'observed') %>% 
+  # launch a Shiny app in your web browser!
+  ord_explore()
+```
+
+## PERMANOVA:
+
+Permutational multivariate analysis of variance.
+
+-   ANOVA - analysis of variance (statistical modelling approach)
+-   Multivariate - more than one dependent variable (multiple taxa!)
+-   Permutational - statistical significance estimates obtained by shuffling the data many times
+
+(Sometimes also called NP-MANOVA, non-parametric MANOVA e.g. on gusta me - insert link TODO)
+
+**TLDR:** Are those groups on the PCoA actually different??
+
+```{r}
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  ord_calc(method = 'PCoA') %>% 
+  ord_plot(alpha = 0.6, size = 2, color = 'birth_mode') +
+  theme_classic(12) +
+  coord_fixed(0.7) +
+  stat_ellipse(aes(color = birth_mode)) +
+  scale_color_brewer(palette = 'Set1')
+```
+
+```{r}
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  dist_permanova(variables = 'birth_mode', n_perms = 99, seed = 123) %>% 
+  perm_get()
+# Use more permutations for a more reliable p.value in your real work (slower)
+# Set a random seed number for reproducibility of this stochastic method
+```
+
+You can see from the model output that the p value, Pr(\>F) is below 0.05.
+So there is good statistical evidence that the bacterial gut microbiota composition of c-section delivered infants has a different composition than vaginally delivered infants at 4 days of age.
+
+You should also report that you used Bray-Curtis dissimilarities, calculated on genera.
+(after keeping only unique taxa with a prevalence of at least 2.5%!)
+
+It's probably a good idea to decide on a couple of appropriate distance measures up front for these tests, and report both (at least in supplementary material), as the choice of distance measure can affect results and conclusions!
+
+You can also adjust for covariates in PERMANOVA, and often should.
+Let's fit a more complex model, adjusting for infant sex, birth weight, and the total number of assigned reads.
+
+```{r}
+shao4 %>% 
+  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+  tax_agg(rank = 'genus') %>% 
+  dist_calc(dist = 'bray') %>% 
+  dist_permanova(
+    variables = c('birth_mode', 'sex', 'birth_weight', 'number_reads'),
+    n_perms = 99, seed = 111
+  ) %>% 
+  perm_get()
+# Use more permutations for a more reliable p.value in your real work (slower)
+# Set a random seed number for reproducibility of this stochastic method
+```
+
+
+# Session info
+
+Records your package versions etc.
+Useful for debugging / reproducing analysis.
+
+```{r}
+devtools::session_info()
+```

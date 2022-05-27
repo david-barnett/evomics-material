@@ -1,0 +1,465 @@
+---
+title: "Microbiome data analysis with microViz"
+subtitle: "Intro & Diversity"
+author: "David Barnett"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 6, fig.height = 4, dpi = 120)
+```
+
+```{r message=FALSE}
+library(seriation)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(phyloseq)
+library(microViz)
+library(shiny)
+```
+
+```{r}
+mice <- readRDS(here::here('data/mice.rds'))
+load(here::here('data/shao19.rda'))
+shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+```
+
+We'll use two datasets today, both are about the gut microbiome.
+The first is from a study of antibiotic administration in mice, and the second is from a large birth cohort study in human infants.
+
+Each dataset was generated using different sequencing techniques, and different sequence data processing approaches.
+But the analyses approaches we will learn today can be readily applied to both methods.
+(The approaches are also appropriate for data other than the gut microbiota! but there is a lot of example gut microbiota data out there.)
+
+-   `mice` is 16S rRNA gene amplicon sequencing data, from the mouse antibiotics study
+    -   They used Illumina MiSeq and processed the data into ASVs using DADA2
+
+-   `shao19` is shotgun metagenomic data, from a 2019 study of infants born vaginally or by C-section.
+    -   They used Illumina HiSeq and the abundance of species-like features was inferred with metaphlan3.
+
+    <!-- (note: not metaphlan3 in the original paper, but available from curatedMetagenomicData package/project) -->
+
+So the data has already been processed from fastq files into counts per taxon.
+This is the exciting bit, you get to explore and visualize the data, and do statistics (yay!).
+
+# Intro to phyloseq
+
+This is a `phyloseq` S4 object, containing processed microbiota data from the mouse study.
+
+<details>
+
+<summary>
+
+**Click here for more details about the mice dataset:**
+
+</summary>
+
+**The mice data**
+
+The data originate from a study on the effects of oral antibiotic administration on flavivirus infection (<https://www.ncbi.nlm.nih.gov/pubmed/29590614>).
+Sequence data was generated from extracted nucleic acid from stool samples collected from individually caged mice and amplified using primers specific for the V4 region using primers 515F/806R.
+
+The study followed flavivirus infection after the following treatments:
+
+1)  Koolaid: Antibiotics are provided to the mice via their drinking water. As many of the antibiotics taste bad, koolaid is added as a sweetener Therefore, the appropriate control is water spiked and labelled *koolaid*.
+2)  Ampicillin (Amp): <https://en.wikipedia.org/wiki/Ampicillin>
+3)  Metronidazole (Met): <https://en.wikipedia.org/wiki/Metronidazole>
+4)  Ampicillin + Metronidazole (Amp+Metro)
+
+Treatments were supplied ad libitum for 2 weeks prior to viral infection and maintained for 2 weeks post-infection.
+Primary outcome was mouse survival.
+Each treatment group had two subgroups of mice that were either a) left uninfected as controls or b) infected with West Nile Virus via a subcutaneous foot pad injection.
+
+</details>
+
+Get a little familiar with the object.
+What does it have in it?
+Can you look at each part?
+
+The printed object shows you functions you can use to access the data inside.
+
+You can also use the `@` symbol.
+
+```{r}
+mice
+# View(mice)
+```
+
+```{r}
+tax_table(mice) %>% head()
+```
+
+```{r}
+rank_names(mice)
+```
+
+```{r}
+otu_table(mice)[1:15, 1:8] 
+# mice@otu_table[1:15, 1:10] # the same result
+```
+
+```{r}
+sample_variables(mice)
+```
+
+```{r}
+sample_data(mice)[1:15, 1:5]
+```
+
+```{r}
+sample_names(mice) %>% head(10) 
+```
+
+# Looking at microbiome data
+
+Okay, so how do we look at the microbiota abundance data?
+To do this, we're going to use the R package `microViz`
+
+Lets take a very small subset of this data to get started, just the control group at day 13.
+
+```{r}
+# We can filter the samples like this, using the sample_data information
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle')
+```
+
+
+```{r message=FALSE, warning=FALSE}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, bar_width = 0.7,
+    sample_order = 'asis', tax_transform_for_plot = 'identity'
+  ) +
+  coord_flip() 
+```
+
+Rats.
+What is this junk?
+The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table.
+
+The total number of reads also varies a lot between samples!
+The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample.
+So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
+  ) +
+  coord_flip()
+```
+
+Let's look at the taxonomy table first.
+
+```{r}
+# tax_fix_interactive(mice) # run this in the R Console for an interactive look
+```
+
+Looks like we just need to fill in some blank cells when a sequence was not classified at genus or family.
+tax_fix can do this, it just copies down info from a higher rank classification.
+Let's update our `mice` phyloseq object with this fix.
+
+```{r}
+mice <- tax_fix(mice, verbose = FALSE)
+```
+
+We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are.
+
+```{r}
+mice %>% taxa_names() %>% head
+mice <- tax_rename(mice, rank = 'Family')
+mice %>% taxa_names() %>% head
+```
+
+Let's try again with the better names.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
+    ) +
+  coord_flip()
+```
+
+Sadly we don't have enough distinct colours to show all the unique taxa.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7,
+    merge_other = FALSE
+    ) +
+  coord_flip()
+```
+
+So let's "aggregate" all the counts into family-level groups.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 10, bar_width = 0.7, sample_order = 'asis'
+  ) +
+  coord_flip()
+```
+
+By aggregating at family level, we have sacrificed taxonomic resolution, compared to using ASVs.
+But this way we can get an idea of which families are the most abundant, and how variable the communities are.
+
+Try making some similar plots aggregated at different taxonomic ranks.
+
+Change the `tax_level` argument.
+
+```{r}
+# mice %>%
+#   ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+#   comp_barplot(tax_level = , n_taxa = 10, sample_order = 'asis', merge_other = FALSE)
+```
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  comp_barplot(
+    tax_level = "Genus", n_taxa = 12, bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) +
+  coord_flip()
+```
+
+Many of the ASVs in this mice data, the *Porphyromonadaceae*, could not be classified at genus level.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  comp_barplot(
+    tax_level = "Phylum", n_taxa = 7, bar_width = 0.7, sample_order = 'asis'
+  ) +
+  coord_flip()
+```
+
+A note on phylum names!
+There have been major changes this year and some of these are now old names.
+Most published research is of course with the old names (and still probably will be for a year or so).
+
+# Alpha diversity
+
+How diverse is the bacterial microbiome of each sample?
+
+## Why is this interesting?
+
+### Biologically
+
+-   Lower gut microbiome diversity is related to worse health in adult humans.
+-   Higher diversity ecosystems are often considered healthier, more mature, and more resilient to perturbation.
+-   BUT: diverse == healthy does not hold for all ecosystems, e.g. early infant gut microbiome, so consider your own data and hypotheses carefully.
+
+### Practically
+
+Diversity indices provide a simple one number summary of each ecosystem: easy to compare and do stats with.
+
+## Richness
+
+The more the merrier.
+The simplest measure is just counting, aka "Observed Richness".
+Let's compute the observed richness and label each sample with it.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  ps_calc_richness(rank = 'Genus', index = 'observed', varname = 'N genera') %>%
+  comp_barplot(
+    tax_level = "Genus", n_taxa = 12, label = 'N genera', bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE#, tax_transform_for_plot = 'identity'
+  ) +
+  coord_flip()
+```
+
+## Diversity
+
+Richness and evenness matter.
+Shannon index, TODO: describe Shannon index and exp shannon.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  ps_calc_diversity(rank = 'Genus', index = 'shannon') %>%
+  ps_mutate(shannon_Genus = round(shannon_Genus, digits = 2)) %>% 
+  comp_barplot(
+    tax_level = "Genus", n_taxa = 12, label = 'shannon_Genus', bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE
+  ) +
+  coord_flip()
+```
+
+## Statistics with alpha diversity
+
+So we have our alpha diversity values for this small subset of mice.
+
+```{r, fig.width=3, fig.height=1}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+  ps_calc_diversity(rank = 'Genus', index = 'shannon') %>%
+  samdat_tbl() %>% 
+  ggplot(aes(x = shannon_Genus, y = "Day 13\ncontrols")) + 
+  geom_point(position = position_jitter(height = 0.2), alpha = 0.5) +
+  labs(x = 'Shannon diversity (Genus)', y = NULL) +
+  xlim(1, 2.5) +
+  theme_bw() 
+```
+
+Let's calculate alpha diversity for all mice after antibiotic or control treatment, and make a comparison.
+I suspect that the average gut microbiota diversity of the antibiotic exposed mice will differ from the control group's at day 3.
+
+```{r}
+# First compute a new variable aggregating all the control mice together
+mice <- mice %>% 
+  ps_mutate(antibiotics = treatment %in% c("Amp", "Metro", "AmpMetro"))
+```
+
+```{r, fig.width=4, fig.height=2.5}
+mice %>% 
+  ps_filter(treatment_days == 'D13') %>% 
+  ps_calc_diversity(rank = 'Genus', index = 'shannon') %>%
+  samdat_tbl() %>% 
+  ggplot(aes(y = antibiotics, x = shannon_Genus)) +
+  geom_boxplot(width = 0.3) + 
+  geom_point(position = position_jitter(height = 0.2), alpha = 0.5) +
+  theme_bw()
+```
+
+It looks like the antibiotics treated mice have lower gut microbiota diversity on average.
+A simple statistical test supports this.
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13') %>% 
+  ps_calc_diversity(rank = 'Genus', index = 'shannon') %>%
+  samdat_tbl() %>% 
+  wilcox.test(formula = shannon_Genus ~ antibiotics, data = .)
+```
+
+You can apply more complex statistical tests as you like, e.g. adjusting for covariates with linear regression, using `lm()`
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13') %>% 
+  ps_calc_diversity(rank = 'Genus', index = 'shannon') %>%
+  samdat_tbl() %>% 
+  lm(formula = shannon_Genus ~ antibiotics + virus, data = .) %>% 
+  summary()
+```
+
+Try it out for yourself at other time points?
+Practice making plots and doing simple statistical tests.
+
+What about richness?
+
+## Extension exercises
+
+<details>
+
+<summary>
+
+**Click here for an extension activity with an IBD dataset:**
+
+</summary>
+
+This is an extension exercise, for those who are moving quickly.
+
+**Inflammatory Bowel Disease study**
+
+```{r}
+ibd <- corncob::ibd_phylo %>% 
+  tax_mutate(Species = NULL) %>% # ibd_phylo Species column was blank -> deleted
+  ps_mutate(disease = ibd == 'ibd', ibd = NULL) # adds disease state indicator variable
+```
+
+`ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data, from a 2012 study of Inflammatory Bowel Disease in children and young adults.
+
+It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs".
+
+Have a look at the data, like we did before for the `mice` dataset.
+
+```{r}
+ibd
+```
+
+```{r}
+#
+```
+
+You can perform alpha diversity analysis: Try comparing the alpha diversity of the IBD patients against the healthy controls.
+
+```{r}
+#
+```
+
+</details>
+
+<details>
+
+<summary>
+
+**Click here for additional notes on richness and readcount**
+
+</summary>
+
+**Additional notes on richness and readcount**
+
+Simple approaches like Observed Richness are sensitive to what ecologists call "sampling effort".
+For macroecologists, this is actually how much time/effort you spent trying to count all the organisms present in an ecosystem.
+In our case, the amount of total reads obtained represents the sampling effort: more reads, more effort.
+Indeed we can see that the samples with a much lower readcount have lower observed richness.
+
+(Furthermore, as this richness estimate is based on a sample, and not the actual ecosystem, the richness estimate actually has quantifiable uncertainty too.)
+
+```{r}
+mice %>% 
+  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Amp') %>%
+  ps_calc_richness(rank = 'Genus', index = 'observed', varname = 'N genera') %>%
+  comp_barplot(
+    tax_level = "Genus", n_taxa = 12, label = 'N genera', bar_width = 0.7,
+    sample_order = 'asis', merge_other = FALSE, tax_transform_for_plot = 'identity'
+  )
+```
+
+```{r, fig.width=5, fig.height=3}
+mice %>% 
+  ps_calc_richness(rank = 'Genus', index = 'observed', varname = 'genera') %>%
+  ps_mutate(readcount = sample_sums(mice)) %>% 
+  samdat_tbl() %>% 
+  ggplot(aes(readcount, genera)) + 
+  geom_point(alpha = 0.4, size = 2.5) +
+  theme_bw(14)
+```
+
+**What to do:**
+
+1)  **Simple solution**: Ignore the problem. Whilst you can't interpret the richness of any individual sample as being correct, it is still usually valid to compare richness across groups of samples, as the readcount variation is only random noise, and should be uncorrelated with your grouping variable (but do check this).
+2)  **Harder solution**: Explore more rigorous methods like `breakaway` by Amy Willis and team. *TODO: INSERT LINK.*
+
+</details>
+
+
+# Session info
+
+Records your package versions etc.
+Useful for debugging / reproducing analysis.
+
+```{r}
+devtools::session_info()
+```

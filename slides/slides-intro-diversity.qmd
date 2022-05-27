@@ -13,10 +13,6 @@ format:
 editor: visual
 ---
 
-# Intro {transition="convex"}
-
-
-
 # Part 1: Diversity {transition="convex"}
 
 ```{r message=FALSE}
@@ -373,7 +369,7 @@ mice %>%
 ```
 
 Richness AND evenness matter.
-$H = -\sum_{i=1}^Np_i\log p_i$
+$H = -\sum_{i=1}^Np_i\ln p_i$
 
 ::: notes
 Shannon index often is H, p is proportion, Shannon index, TODO: describe Shannon index and exp shannon.
@@ -399,7 +395,8 @@ mice %>%
 
 $e^H = N$ if all taxa were equally abundant.
 
-## Evenness
+
+## Evenness - Simpson's equitability
 
 To do?
-Simpson, I didn't write a convenient ps_calc\_\* function for this yet so use, microbiome package directly...
+Simpson's equitability, I didn't write a convenient ps_calc\_\* function for this yet so use, microbiome package directly...
