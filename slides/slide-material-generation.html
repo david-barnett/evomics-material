@@ -11,7 +11,7 @@
 
 <meta name="author" content="David Barnett" />
 
-<meta name="date" content="2022-05-26" />
+<meta name="date" content="2022-05-28" />
 
 <title>Diversity slides figure generation</title>
 
@@ -1542,7 +1542,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Diversity slides figure generation</h1>
 <h4 class="author">David Barnett</h4>
-<h4 class="date">2022-05-26</h4>
+<h4 class="date">2022-05-28</h4>
 
 </div>
 
@@ -1552,18 +1552,17 @@ library(dplyr)
 library(purrr)
 library(ggplot2)
 library(phyloseq)
-library(microViz)
-library(shiny)</code></pre>
-<pre class="r"><code>mice &lt;- readRDS(here::here(&#39;data/mice.rds&#39;))
-load(here::here(&#39;data/shao19.rda&#39;))
+library(microViz)</code></pre>
+<pre class="r"><code>mice &lt;- readRDS(here::here(&quot;data/mice.rds&quot;))
+load(here::here(&quot;data/shao19.rda&quot;))
 shao19 &lt;- tax_fix(shao19, verbose = FALSE) %&gt;% tax_names2rank(&quot;species&quot;)</code></pre>
 <p>Okay, so how do we look at the microbiota abundance data? To do this,
 we’re going to use the R package <code>microViz</code></p>
 <p>Lets take a very small subset of this data to get started, just the
 control group at day 13.</p>
 <pre class="r"><code># We can filter the samples like this, using the sample_data information
-mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;)</code></pre>
+mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;)</code></pre>
 <pre><code>## phyloseq-class experiment-level object
 ## otu_table()   OTU Table:         [ 563 taxa and 10 samples ]
 ## sample_data() Sample Data:       [ 10 samples by 11 sample variables ]
@@ -1571,12 +1570,12 @@ mice %&gt;%
 <!-- Probably move this didactic process of making bad to better plots to the slides only. -->
 <!-- Align the plots with patchwork and fade through them in presentation -->
 <pre class="r"><code>miceBarplotList &lt;- list()</code></pre>
-<pre class="r"><code>miceBarplotList[[&#39;bad&#39;]] &lt;-
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;%
+<pre class="r"><code>miceBarplotList[[&quot;bad&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
-    tax_level = &#39;unique&#39;, n_taxa = 12, bar_width = 0.7,
-    sample_order = &#39;asis&#39;, tax_transform_for_plot = &#39;identity&#39;
+    tax_level = &quot;unique&quot;, n_taxa = 12, bar_width = 0.7,
+    sample_order = &quot;asis&quot;, tax_transform_for_plot = &quot;identity&quot;
   ) +
   coord_flip()</code></pre>
 <p>Rats. What is this junk? The unique taxa have uninformative IDs, and
@@ -1586,11 +1585,11 @@ total number of reads for each sample is NOT a reliable indicator of the
 biomass or bacterial load of each sample. So for now we will just
 consider the relative abundance of each taxon, as proportions of the
 total counts for that sample.</p>
-<pre class="r"><code>miceBarplotList[[&#39;comp&#39;]] &lt;- 
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;%
+<pre class="r"><code>miceBarplotList[[&quot;comp&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
-    tax_level = &#39;unique&#39;, n_taxa = 12, sample_order = &#39;asis&#39;, bar_width = 0.7
+    tax_level = &quot;unique&quot;, n_taxa = 12, sample_order = &quot;asis&quot;, bar_width = 0.7
   ) +
   coord_flip()</code></pre>
 <pre><code>## NAs detected in phyloseq tax_table:
@@ -1607,36 +1606,40 @@ copies down info from a higher rank classification. Let’s update our
 <p>We can also rename the unique taxa with a more informative name,
 according to their classification at Family level, and how common they
 are.</p>
-<pre class="r"><code>mice %&gt;% taxa_names() %&gt;% head</code></pre>
+<pre class="r"><code>mice %&gt;%
+  taxa_names() %&gt;%
+  head()</code></pre>
 <pre><code>## [1] &quot;ASV0001&quot; &quot;ASV0002&quot; &quot;ASV0003&quot; &quot;ASV0004&quot; &quot;ASV0005&quot; &quot;ASV0006&quot;</code></pre>
-<pre class="r"><code>mice &lt;- tax_rename(mice, rank = &#39;Family&#39;)
-mice %&gt;% taxa_names() %&gt;% head</code></pre>
+<pre class="r"><code>mice &lt;- tax_rename(mice, rank = &quot;Family&quot;)
+mice %&gt;%
+  taxa_names() %&gt;%
+  head()</code></pre>
 <pre><code>## [1] &quot;Porphyromonadaceae 001&quot; &quot;Xanthomonadaceae 01&quot;    &quot;Porphyromonadaceae 002&quot;
 ## [4] &quot;Porphyromonadaceae 003&quot; &quot;Porphyromonadaceae 004&quot; &quot;Porphyromonadaceae 005&quot;</code></pre>
 <p>Let’s try again with the better names.</p>
-<pre class="r"><code>miceBarplotList[[&#39;named&#39;]] &lt;-
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;%
+<pre class="r"><code>miceBarplotList[[&quot;named&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
-    tax_level = &#39;unique&#39;, n_taxa = 12, sample_order = &#39;asis&#39;, bar_width = 0.7
-    ) +
+    tax_level = &quot;unique&quot;, n_taxa = 12, sample_order = &quot;asis&quot;, bar_width = 0.7
+  ) +
   coord_flip()</code></pre>
 <p>Sadly we don’t have enough distinct colours to show all the unique
 taxa.</p>
-<pre class="r"><code>miceBarplotList[[&#39;unique&#39;]] &lt;- 
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;%
+<pre class="r"><code>miceBarplotList[[&quot;unique&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
-    tax_level = &#39;unique&#39;, n_taxa = 12, sample_order = &#39;asis&#39;, bar_width = 0.7,
+    tax_level = &quot;unique&quot;, n_taxa = 12, sample_order = &quot;asis&quot;, bar_width = 0.7,
     merge_other = FALSE
-    ) +
+  ) +
   coord_flip()</code></pre>
 <p>So let’s “aggregate” all the counts into family-level groups.</p>
-<pre class="r"><code>miceBarplotList[[&#39;family&#39;]] &lt;- 
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;%
+<pre class="r"><code>miceBarplotList[[&quot;family&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
-    tax_level = &quot;Family&quot;, n_taxa = 10, bar_width = 0.7, sample_order = &#39;asis&#39;
+    tax_level = &quot;Family&quot;, n_taxa = 10, bar_width = 0.7, sample_order = &quot;asis&quot;
   ) +
   coord_flip()</code></pre>
 <p>By aggregating at family level, we have sacrificed taxonomic
@@ -1649,28 +1652,28 @@ ranks.</p>
 <pre class="r"><code># mice %&gt;%
 #   ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;%
 #   comp_barplot(tax_level = , n_taxa = 10, sample_order = &#39;asis&#39;, merge_other = FALSE)</code></pre>
-<pre class="r"><code>miceBarplotList[[&#39;genus&#39;]] &lt;- 
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;% 
+<pre class="r"><code>miceBarplotList[[&quot;genus&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
     tax_level = &quot;Genus&quot;, n_taxa = 12, bar_width = 0.7,
-    sample_order = &#39;asis&#39;, merge_other = FALSE
+    sample_order = &quot;asis&quot;, merge_other = FALSE
   ) +
   coord_flip()</code></pre>
 <p>Many of the ASVs in this mice data, the <em>Porphyromonadaceae</em>,
 could not be classified at genus level.</p>
-<pre class="r"><code>miceBarplotList[[&#39;phylum&#39;]] &lt;- 
-  mice %&gt;% 
-  ps_filter(treatment_days == &#39;D13&#39;, virus == &#39;WNV2000&#39;, treatment == &#39;Vehicle&#39;) %&gt;% 
+<pre class="r"><code>miceBarplotList[[&quot;phylum&quot;]] &lt;-
+  mice %&gt;%
+  ps_filter(treatment_days == &quot;D13&quot;, virus == &quot;WNV2000&quot;, treatment == &quot;Vehicle&quot;) %&gt;%
   comp_barplot(
-    tax_level = &quot;Phylum&quot;, n_taxa = 7, bar_width = 0.7, sample_order = &#39;asis&#39;
+    tax_level = &quot;Phylum&quot;, n_taxa = 7, bar_width = 0.7, sample_order = &quot;asis&quot;
   ) +
   coord_flip()</code></pre>
 <p>A note on phylum names! There have been major changes this year and
 some of these are now old names. Most published research is of course
 with the old names (and still probably will be for a year or so).</p>
 <p>INSERT NAME CONVERSION TABLE.</p>
-<pre class="r"><code>saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = &#39;hv&#39;), file = here::here(&#39;slides/data/barplots.rds&#39;))</code></pre>
+<pre class="r"><code>saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = &quot;hv&quot;), file = here::here(&quot;slides/data/barplots.rds&quot;))</code></pre>
 
 
 

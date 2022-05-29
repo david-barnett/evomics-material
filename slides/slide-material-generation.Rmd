@@ -18,13 +18,11 @@ library(purrr)
 library(ggplot2)
 library(phyloseq)
 library(microViz)
-library(shiny)
 ```
 
 ```{r}
-mice <- readRDS(here::here('data/mice.rds'))
-load(here::here('data/shao19.rda'))
-shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+mice <- readRDS(here::here("data/mice.rds"))
+shao19 <- readRDS(here::here('data/shao19.rds'))
 ```
 
 Okay, so how do we look at the microbiota abundance data?
@@ -34,8 +32,8 @@ Lets take a very small subset of this data to get started, just the control grou
 
 ```{r}
 # We can filter the samples like this, using the sample_data information
-mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle')
+mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle")
 ```
 
 <!-- Probably move this didactic process of making bad to better plots to the slides only. -->
@@ -48,12 +46,12 @@ miceBarplotList <- list()
 
 
 ```{r message=FALSE, warning=FALSE}
-miceBarplotList[['bad']] <-
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+miceBarplotList[["bad"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
-    tax_level = 'unique', n_taxa = 12, bar_width = 0.7,
-    sample_order = 'asis', tax_transform_for_plot = 'identity'
+    tax_level = "unique", n_taxa = 12, bar_width = 0.7,
+    sample_order = "asis", tax_transform_for_plot = "identity"
   ) +
   coord_flip()
 ```
@@ -67,11 +65,11 @@ The total number of reads for each sample is NOT a reliable indicator of the bio
 So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
 
 ```{r}
-miceBarplotList[['comp']] <- 
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+miceBarplotList[["comp"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
-    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
+    tax_level = "unique", n_taxa = 12, sample_order = "asis", bar_width = 0.7
   ) +
   coord_flip()
 ```
@@ -93,44 +91,48 @@ mice <- tax_fix(mice, verbose = FALSE)
 We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are. 
 
 ```{r}
-mice %>% taxa_names() %>% head
-mice <- tax_rename(mice, rank = 'Family')
-mice %>% taxa_names() %>% head
+mice %>%
+  taxa_names() %>%
+  head()
+mice <- tax_rename(mice, rank = "Family")
+mice %>%
+  taxa_names() %>%
+  head()
 ```
 
 Let's try again with the better names.
 
 ```{r}
-miceBarplotList[['named']] <-
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+miceBarplotList[["named"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
-    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7
-    ) +
+    tax_level = "unique", n_taxa = 12, sample_order = "asis", bar_width = 0.7
+  ) +
   coord_flip()
 ```
 
 Sadly we don't have enough distinct colours to show all the unique taxa.
 
 ```{r}
-miceBarplotList[['unique']] <- 
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+miceBarplotList[["unique"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
-    tax_level = 'unique', n_taxa = 12, sample_order = 'asis', bar_width = 0.7,
+    tax_level = "unique", n_taxa = 12, sample_order = "asis", bar_width = 0.7,
     merge_other = FALSE
-    ) +
+  ) +
   coord_flip()
 ```
 
 So let's "aggregate" all the counts into family-level groups.
 
 ```{r}
-miceBarplotList[['family']] <- 
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
+miceBarplotList[["family"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
-    tax_level = "Family", n_taxa = 10, bar_width = 0.7, sample_order = 'asis'
+    tax_level = "Family", n_taxa = 10, bar_width = 0.7, sample_order = "asis"
   ) +
   coord_flip()
 ```
@@ -149,12 +151,12 @@ Change the `tax_level` argument.
 ```
 
 ```{r}
-miceBarplotList[['genus']] <- 
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+miceBarplotList[["genus"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
     tax_level = "Genus", n_taxa = 12, bar_width = 0.7,
-    sample_order = 'asis', merge_other = FALSE
+    sample_order = "asis", merge_other = FALSE
   ) +
   coord_flip()
 ```
@@ -162,11 +164,11 @@ miceBarplotList[['genus']] <-
 Many of the ASVs in this mice data, the *Porphyromonadaceae*, could not be classified at genus level.
 
 ```{r}
-miceBarplotList[['phylum']] <- 
-  mice %>% 
-  ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>% 
+miceBarplotList[["phylum"]] <-
+  mice %>%
+  ps_filter(treatment_days == "D13", virus == "WNV2000", treatment == "Vehicle") %>%
   comp_barplot(
-    tax_level = "Phylum", n_taxa = 7, bar_width = 0.7, sample_order = 'asis'
+    tax_level = "Phylum", n_taxa = 7, bar_width = 0.7, sample_order = "asis"
   ) +
   coord_flip()
 ```
@@ -178,7 +180,5 @@ Most published research is of course with the old names (and still probably will
 INSERT NAME CONVERSION TABLE.
 
 ```{r}
-saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = 'hv'), file = here::here('slides/data/barplots.rds'))
+saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = "hv"), file = here::here("slides/data/barplots.rds"))
 ```
-
-

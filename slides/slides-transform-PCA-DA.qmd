@@ -1,0 +1,364 @@
+---
+title: "Microbiome data analysis with microViz"
+author: "David Barnett"
+format: 
+  revealjs:
+    theme: dark
+    transition: fade
+    slide-number: true
+    scrollable: true
+    pause: false
+    fig-responsive: false
+    history: false
+editor: source
+---
+
+# Part 3: PCA & Differential Abundance {transition="convex"}
+
+```{r message=FALSE}
+library(seriation)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(cowplot)
+library(phyloseq)
+library(microViz)
+```
+
+```{r}
+knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 120)
+options(width = 500)
+shao19 <- readRDS(here::here('data/shao19.rds'))
+shao4 <- shao19 %>% ps_filter(family_role == "child", infant_age == 4)
+mice <- readRDS(here::here("data/mice.rds"))
+ibd <- readRDS(here::here("data/ibd.rds"))
+```
+
+## More Dissimilarity {.smaller transition="convex-in convex-out"}
+
+::: incremental
+-   **Ecological & Phylogenetic dissimilarities / distances**:
+    -   Binary Jaccard
+    -   Bray Curtis
+    -   UniFrac (unweighted/weighted/generalized)
+    -   Others...
+-   **Euclidean distances**
+    -   Widely used in data science
+    -   Useful for microbiome abundance data??
+:::
+
+## Datasets {transition="convex"}
+
+```{r}
+#| echo: true
+shao19
+```
+
+```{r}
+#| echo: true
+mice
+```
+
+```{r}
+#| echo: true
+ibd
+```
+
+::: notes
+We'll primarily use (parts of) the shao19 data for demonstration.
+But during the exercises try exploring the other datasets too, if you want more practice.
+:::
+
+## Euclidean distances
+
+::: columns
+::: {.column width="40%"}
+```{r, fig.height=3, fig.width=3}
+pq <- data.frame(taxonA = c(1, 4), taxonB = c(6, 2), row.names = c("p", "q"))
+pq %>%
+  ggplot() +
+  geom_point(aes(x = taxonA, y = taxonB), size = 3) +
+  coord_fixed(xlim = c(0, 5), ylim = c(0, 6)) +
+  geom_segment(x = 1, xend = 4, y = 2, yend = 2, linetype = "dashed") +
+  geom_segment(x = 1, xend = 1, y = 2, yend = 6, linetype = "dashed") +
+  geom_segment(x = 1, xend = 4, y = 6, yend = 2, color = "red") +
+  annotate(
+    geom = 'text', x = c(2.5, 0.75, 2.75), y = c(1.75, 4, 4.25), 
+    label = c("a", "b", "c"), size = 7
+  ) +
+  theme_classic() +
+  scale_y_continuous(breaks = 0:6)
+```
+:::
+
+::: {.column width="60%"}
+Pythagoras: $c = \sqrt{a^2 + b^2}$
+
+Euclidean distance between samples p and q
+
+$$d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }$$
+
+```{r}
+#| echo: true
+dist(pq, method = "euclidean")
+```
+:::
+:::
+
+::: notes
+-   What are Euclidean distances? 2 dimensional example
+-   Show pythagoras $c = \sqrt{a^2 + b^2}$ and explain generalisation to more dimensions, where each dimension is the counts of one taxon.
+-   Test it, indeed you get 5
+:::
+
+## Naïve Euclidean PCoA {.smaller}
+
+-   Sensitive to sparsity
+-   Excessive emphasis on high-abundance taxa
+
+```{r}
+#| echo: false
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "euclidean") %>%
+  ord_calc(method = "PCoA") %>%
+  ord_plot(alpha = 0.6, size = 2) +
+  theme_classic(12) +
+  coord_fixed(0.7) +
+  geom_rug(alpha = 0.1)
+```
+
+The PCoA looks weird!
+
+::: notes
+Sensitive to sparsity (double-zero problem): - filter rare taxa.
+Excessive emphasis on high-abundance taxa: - transform features first.
+The PCoA looks weird! Most samples bunched in the middle with spindly projections..
+:::
+
+## Taxon Abundance transformations! 
+
+-   Already used:
+    -   Compositional (proportions)
+    -   Binary (Presence or Absence)
+
+::: fragment 
+
+-   Log transformations
+    -   Log~2~, Log~10~, natural log?
+:::    
+::: fragment
+-   Centered Log Ratio - CLR
+:::
+
+::: notes
+We already did two transformations with `tax_transform()`: binary (for Binary Jaccard distances) and compositional (for barplots).
+
+Now we need log transformations, and the centered-log-ratio, CLR, transformation.
+:::
+
+
+```{r}
+# Getting the taxa in abundance order up front
+# to keep it consistent across multiple plots
+shao4_sorted <- shao4 %>% 
+  tax_sort(by = sum, at = "genus", trans = "compositional", tree_warn = FALSE)
+```
+
+## Transformations - none
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "identity", rank = "genus") %>%
+  comp_heatmap(
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "Counts",
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+::: notes
+First let's look at the abundance again, this time with heatmaps.
+Each column is a sample (from an infant), and each row is a taxon.
+:::
+
+## Transformations - none - all data!
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "identity", rank = "genus") %>%
+  comp_heatmap(tax_seriation = "Identity", sample_seriation = "Identity")
+```
+
+::: notes
+Too much to show all the taxa (and samples, for this example)
+:::
+
+## Transformations - Compositions
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "compositional", rank = "genus") %>%
+  comp_heatmap(
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "Prop.",
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+::: notes
+Doesn't actually help us with the problem of excess emphasis on high-abundance features
+:::
+
+## Transformations - Binary
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "binary", rank = "genus") %>%
+  comp_heatmap(
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "Bin.",
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+::: notes 
+Binary transformation is not really useful here as it discards all abundance info, but nice to show that even though we have picked the top 20 most abundant genera, there are still a lot of zeros.
+We need to deal with the zeros, because `log(0)` is undefined.
+The solution is to add a small amount to every value (or just every zero), before applying the log transformation.
+This small value is often called a pseudo-count.
+:::
+
+## Transformations - log10(x+1)
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(rank = "genus", trans = "log10", zero_replace = 1) %>%
+  comp_heatmap(
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "log10\n(x+1)",
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+::: notes
+What value should we use for the pseudo-count?
+One option is to just add 1.
+:::
+
+## Transformations - log10(x+"halfmin")
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_agg(rank = "genus") %>%
+  # tax_transform(trans = 'compositional') %>% # compositional also possible
+  tax_transform(trans = "log10", zero_replace = "halfmin", chain = TRUE) %>%
+  comp_heatmap(
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "log10\nmin/2",
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+::: notes
+Another popular option is to add half of the smallest observed real value (from across the whole dataset).
+
+People fight about the best zero replacement strategy and some much more complicated methods exist: including generative statistical models.
+In practice: keep it simple and record your approach!
+:::
+
+## Log10-transformed Euclidean PCoA
+
+```{r}
+#| echo: false
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  tax_transform("log10p") %>% 
+  dist_calc(dist = "euclidean") %>%
+  ord_calc(method = "PCoA") %>%
+  ord_plot(alpha = 0.6, size = 2) +
+  theme_classic(12) +
+  geom_rug(alpha = 0.1)
+```
+
+## Transformations - Centered Log Ratio
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_agg(rank = "genus") %>%
+  # tax_transform(trans = 'compositional') %>% # compositional also possible
+  tax_transform(trans = "clr", zero_replace = "halfmin", chain = TRUE) %>%
+  comp_heatmap(
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "CLR\nmin/2",
+    colors = heat_palette(sym = TRUE),
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+::: notes
+So I mentioned another transformation.
+The Centered-log-ratio transformation
+
+The centered log-ratio (clr) transformation uses the geometric mean of the sample vector as the reference
+:::
+
+## Centered Log Ratio tranformation {transition="convex"}
+
+::: incremental
+
+-  What?
+    - Calculate geometric mean for each sample
+    - Divide each taxon by the geometric mean of each sample
+    - Take the natural log
+
+-  Why?
+    - The compositional data problem
+
+:::
+
+## Compositional data problem {.smaller transition="convex"}
+
+![](images/gloor-2017.jpg)
+
+
+Gloor 2017 - Microbiome Datasets are Compositional: and this is not optional.
+
+::: notes
+The total number of reads number of sequence counts is not a good measure of microbial biomass.
+It is an arbitrary sum, more reads only gets you higher precision and more reliable estimates of the proportions. I mentioned this briefly when we started making bar charts.
+
+In this nice diagram from a paper by Prof Gregory Gloor, we see what this means for data interpretation. First part of B shows true abundance of 2 bacterial taxa in a simple ecosystem. 
+Using sample 1 as the reference, if we compare this to sample 2, the true abundance of taxon B has decreased, and A is the same. In sample 3, A has increased, whilst B stays the same.
+
+But from sequencing data we only know the relative abundance. So samples 2 and 3 look identical! 
+That is the interpretation problem. But this also causes a statistical problem.
+
+Gloor 2017 is a good read, including the extensive educational supplementary material!.
+:::
+
+
+## {transition="convex"}
+
+![](images/gloor-slide-constant-sum.png)
+::: notes
+Constant sum (1000 in this three taxon toy example)
+Causes taxa abundances to be appear correlated (on average).
+The counts exist in what is called the Aitchison simplex space.
+With 3 taxa, this space can be visualised on a ternary diagram, with 3 interconnected axes. 
+We need to escape the simplex, back to unconstrained real space, this is what the CLR does.
+:::
+
+## 
+
+![](images/gloor-clr-slide.jpg)
+
+::: notes
+Another slide from Prof Gloor.
+X is a sample vector where x1, x2 etc are the counts of each taxon in that sample.
+
+After the CLR transformation, the abundance of each taxon is expressed relative to the other taxa in the sample. This transformation takes us back to real geometric space.
+
+Confused? Don't worry, if you're interested check out that paper by Gloor.
+If not just know that you'll often see microbiome data transformed in this way, and it makes the PCoA plots look better!
+::: 
+
+## Aitchison PCoA (clr + euclidean distance)
+
+

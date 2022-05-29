@@ -7,9 +7,9 @@ output:
   html_document:
     theme: paper
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float: 
-      collapsed: false
+      collapsed: true
 ---
 
 # Setup
@@ -30,8 +30,7 @@ library(shiny)
 
 ```{r}
 mice <- readRDS(here::here('data/mice.rds'))
-load(here::here('data/shao19.rda'))
-shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+shao19 <- readRDS(here::here('data/shao19.rds'))
 ```
 
 We'll use two datasets today, both are about the gut microbiome.
@@ -125,7 +124,10 @@ sample_names(mice) %>% head(10)
 Okay, so how do we look at the microbiota abundance data?
 To do this, we're going to use the R package `microViz`
 
-Lets take a very small subset of this data to get started, just the control group at day 13.
+## Barcharts: bad to better
+
+Lets take a very small subset of this data to get started.
+Just the control group (vehicle treatment) at day 13.
 
 ```{r}
 # We can filter the samples like this, using the sample_data information
@@ -134,7 +136,9 @@ mice %>%
 ```
 
 
-```{r message=FALSE, warning=FALSE}
+### Bad bars
+
+```{r}
 mice %>% 
   ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
   comp_barplot(
@@ -144,13 +148,14 @@ mice %>%
   coord_flip() 
 ```
 
-Rats.
-What is this junk?
+Rats, what is this junk?
 The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table.
 
 The total number of reads also varies a lot between samples!
 The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample.
 So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
+
+### Compositions (%)
 
 ```{r}
 mice %>% 
@@ -161,21 +166,23 @@ mice %>%
   coord_flip()
 ```
 
-Let's look at the taxonomy table first.
+### Fixing tax_table 
+
+Let's look at the taxonomy table interactively
 
 ```{r}
 # tax_fix_interactive(mice) # run this in the R Console for an interactive look
 ```
 
 Looks like we just need to fill in some blank cells when a sequence was not classified at genus or family.
-tax_fix can do this, it just copies down info from a higher rank classification.
+`tax_fix` can do this, it just copies down info from a higher rank classification.
 Let's update our `mice` phyloseq object with this fix.
 
 ```{r}
 mice <- tax_fix(mice, verbose = FALSE)
 ```
 
-We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are.
+We can also rename the unique taxa with a more informative name, according to their classification at the rank of Family (and how common they are).
 
 ```{r}
 mice %>% taxa_names() %>% head
@@ -206,7 +213,10 @@ mice %>%
   coord_flip()
 ```
 
+### Aggregating taxa
+
 So let's "aggregate" all the counts into family-level groups.
+For each family, this adds together all the counts from every ASV that belongs to that family. We can do that by changing the `tax_level` argument to "Family".
 
 ```{r}
 mice %>% 
@@ -222,9 +232,8 @@ But this way we can get an idea of which families are the most abundant, and how
 
 Try making some similar plots aggregated at different taxonomic ranks.
 
-Change the `tax_level` argument.
-
 ```{r}
+# rank_names(mice)
 # mice %>%
 #   ps_filter(treatment_days == 'D13', virus == 'WNV2000', treatment == 'Vehicle') %>%
 #   comp_barplot(tax_level = , n_taxa = 10, sample_order = 'asis', merge_other = FALSE)
@@ -250,6 +259,9 @@ mice %>%
   ) +
   coord_flip()
 ```
+
+
+### Fickle Phyla
 
 A note on phylum names!
 There have been major changes this year and some of these are now old names.

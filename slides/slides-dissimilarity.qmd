@@ -10,7 +10,7 @@ format:
     pause: false
     fig-responsive: false
     history: false
-editor: visual
+editor: source
 ---
 
 # Part 2: Dissimilarity {transition="convex"}
@@ -28,8 +28,7 @@ library(microViz)
 ```{r}
 knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 120)
 options(width = 500)
-load(here::here('data/shao19.rda'))
-shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+shao19 <- readRDS(here::here('data/shao19.rds'))
 ```
 
 

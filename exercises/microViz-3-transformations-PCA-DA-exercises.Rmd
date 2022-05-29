@@ -14,7 +14,7 @@ output:
 
 # Setup
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE, fig.width = 6, fig.height = 4, dpi = 120)
 ```
 
@@ -29,10 +29,9 @@ library(shiny)
 ```
 
 ```{r}
-mice <- readRDS(here::here('data/mice.rds'))
-load(here::here('data/shao19.rda'))
-shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
-shao4 <- shao19 %>% ps_filter(family_role == 'child', infant_age == 4) 
+mice <- readRDS(here::here("data/mice.rds"))
+shao19 <- readRDS(here::here('data/shao19.rds'))
+shao4 <- shao19 %>% ps_filter(family_role == "child", infant_age == 4)
 ```
 
 # Beta diversity (part 2)
@@ -51,14 +50,14 @@ What are those?
 -   The PCoA looks weird! most samples bunched in the middle with spindly projections..
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'euclidean') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "euclidean") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(alpha = 0.6, size = 2) +
   theme_classic(12) +
-  coord_fixed(0.7) + 
+  coord_fixed(0.7) +
   geom_rug(alpha = 0.1)
 ```
 
@@ -76,26 +75,36 @@ First let's look at the abundance again, this time with heatmaps.
 # Getting the taxa in abundance order up front
 # to keep it consistent across multiple plots
 shao4_sorted <- shao4 %>% 
-  tax_sort(by = sum, at = 'genus', trans = 'compositional', tree_warn = FALSE)
+  tax_sort(by = sum, at = "genus", trans = "compositional", tree_warn = FALSE)
 ```
 
 Each column is a sample (from an infant), and each row is a taxon.
 
-```{r, fig.height=3, fig.width=5}
-shao4_sorted %>% 
-  tax_transform(trans = 'identity', rank = 'genus') %>% 
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "identity", rank = "genus") %>%
   comp_heatmap(
-    samples = 1:30, taxa = 1:20, grid_lwd = 2, name = 'Counts',
-    tax_seriation = 'Identity', sample_seriation = "Identity"
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "Counts",
+    tax_seriation = "Identity", sample_seriation = "Identity"
   )
 ```
 
-```{r, fig.height=3, fig.width=5}
-shao4_sorted %>% 
-  tax_transform(trans = 'compositional', rank = 'genus') %>% 
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "compositional", rank = "genus") %>%
   comp_heatmap(
-    samples = 1:30, taxa = 1:20, grid_lwd = 2, name = 'Prop.',
-    tax_seriation = 'Identity', sample_seriation = "Identity"
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "Prop.",
+    tax_seriation = "Identity", sample_seriation = "Identity"
+  )
+```
+
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(trans = "compositional", rank = "genus") %>%
+  comp_heatmap(
+    numbers = heat_numbers(fmt = "%.1f"), numbers_use_counts = FALSE,
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "Prop.",
+    tax_seriation = "Identity", sample_seriation = "Identity"
   )
 ```
 
@@ -107,23 +116,23 @@ What value should we use for the pseudo-count?
 
 One option is to just add 1, and another popular option is to add half of the smallest observed real value (from across the whole dataset).
 
-```{r, fig.height=3, fig.width=5}
-shao4_sorted %>% 
-  tax_transform(rank= 'genus', trans = 'log10', zero_replace = 1) %>% 
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_transform(rank = "genus", trans = "log10", zero_replace = 1) %>%
   comp_heatmap(
-    samples = 1:30, taxa = 1:20, grid_lwd = 2, name = 'log10\n(x+1)', 
-    tax_seriation = 'Identity', sample_seriation = "Identity"
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "log10\n(x+1)",
+    tax_seriation = "Identity", sample_seriation = "Identity"
   )
 ```
 
-```{r, fig.height=3, fig.width=5}
-shao4_sorted %>% 
-  tax_agg(rank = 'genus') %>% 
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_agg(rank = "genus") %>%
   # tax_transform(trans = 'compositional') %>% # compositional also possible
-  tax_transform(trans = 'log10', zero_replace = 'halfmin', chain = TRUE) %>% 
+  tax_transform(trans = "log10", zero_replace = "halfmin", chain = TRUE) %>%
   comp_heatmap(
-    samples = 1:30, taxa = 1:20, grid_lwd = 2, name = 'log10\nhalfmin', 
-    tax_seriation = 'Identity', sample_seriation = "Identity"
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "log10\nhalfmin",
+    tax_seriation = "Identity", sample_seriation = "Identity"
   )
 ```
 
@@ -135,19 +144,21 @@ Compositionality - centered-log-ratio transformation
 
 The centered log-ratio (clr) transformation uses the geometric mean of the sample vector as the reference
 
-```{r, fig.height=3, fig.width=5}
-shao4_sorted %>% 
-  tax_agg(rank = 'genus') %>% 
+```{r, fig.height=3, fig.width=6}
+shao4_sorted %>%
+  tax_agg(rank = "genus") %>%
   # tax_transform(trans = 'compositional') %>% # compositional also possible
-  tax_transform(trans = 'clr', zero_replace = 'halfmin', chain = TRUE) %>% 
+  tax_transform(trans = "clr", zero_replace = "halfmin", chain = TRUE) %>%
   comp_heatmap(
-    samples = 1:30, taxa = 1:20, grid_lwd = 2, name = 'CLR\nhalfmin', 
+    samples = 1:20, taxa = 1:20, grid_lwd = 2, name = "CLR\nhalfmin",
     colors = heat_palette(sym = TRUE),
-    tax_seriation = 'Identity', sample_seriation = "Identity"
+    tax_seriation = "Identity", sample_seriation = "Identity"
   )
 ```
 
-Overview of CoDa problem - slides only.
+<details>
+
+Overview of CoDa problem.
 
 The sequencing data gives us relative abundances, not absolute abundances.
 The total number of reads sequenced per sample is an arbitrary total.
@@ -170,6 +181,8 @@ Finally you take the natural log of this ratio.
 For more details, check out Gloor 2017, and work by Thomas Quinn.
 TODO: link.
 
+</details>
+
 ## PCA
 
 Principal Components Analysis.
@@ -180,22 +193,22 @@ In fact, PCA produces equivalent results to PCoA with euclidean distances.
 So let's perform the CLR-transform first and check PCA and euclidean PCoA are the same.
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_transform(rank = 'genus', trans = 'clr', zero_replace = 'halfmin') %>% 
-  dist_calc(dist = 'euclidean') %>% 
-  ord_calc(method = 'PCoA') %>% 
-  ord_plot(alpha = 0.6, size = 2, color = 'birth_mode') +
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  dist_calc(dist = "euclidean") %>%
+  ord_calc(method = "PCoA") %>%
+  ord_plot(alpha = 0.6, size = 2, color = "birth_mode") +
   theme_classic(12) +
-  coord_fixed(0.7) 
+  coord_fixed(0.7)
 ```
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_transform(rank = 'genus', trans = 'clr', zero_replace = 'halfmin') %>% 
-  ord_calc(method = 'PCA') %>% 
-  ord_plot(alpha = 0.6, size = 2, color = 'birth_mode') +
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  ord_calc(method = "PCA") %>%
+  ord_plot(alpha = 0.6, size = 2, color = "birth_mode") +
   theme_classic(12) +
   coord_fixed(0.7)
 ```
@@ -206,20 +219,20 @@ Because the Principal components are built directly from a (linear) combination 
 That means we know how much each taxon contributes to each PC axis, and we can plot this information (loadings) as arrows, alongside the sample points.
 
 ```{r}
-pca <- shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_transform(rank = 'genus', trans = 'clr', zero_replace = 'halfmin') %>% 
-  ord_calc(method = 'PCA') %>% 
+pca <- shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  ord_calc(method = "PCA") %>%
   ord_plot(
-    alpha = 0.6, size = 2, color = 'birth_mode',
+    alpha = 0.6, size = 2, color = "birth_mode",
     plot_taxa = 1:6, tax_vec_length = 0.275,
     tax_lab_style = tax_lab_style(
-      type = 'text', max_angle = 90, aspect_ratio = 0.7, 
-      size = 3, fontface = 'bold'
+      type = "text", max_angle = 90, aspect_ratio = 0.7,
+      size = 3, fontface = "bold"
     ),
   ) +
   theme_classic(12) +
-  coord_fixed(0.7, clip = 'off')
+  coord_fixed(0.7, clip = "off")
 pca
 ```
 
@@ -244,19 +257,19 @@ You might have already noticed this pattern, when exploring and making barplots 
 We can make another kind of barplot now, using the PCA information to order our samples in a circular layout.
 
 ```{r}
-iris <- shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_transform(rank = 'genus', trans = 'clr', zero_replace = 'halfmin') %>% 
-  ord_calc(method = 'PCA') %>% 
+iris <- shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  ord_calc(method = "PCA") %>%
   ord_plot_iris(
-    tax_level = 'genus', n_taxa = 12, other = "Other", 
-    anno_colour = 'birth_mode', anno_colour_style = list(alpha = 0.6, size = 0.6, show.legend = FALSE)
+    tax_level = "genus", n_taxa = 12, other = "Other",
+    anno_colour = "birth_mode", anno_colour_style = list(alpha = 0.6, size = 0.6, show.legend = FALSE)
   )
 iris
 ```
 
 ```{r, fig.height=5, fig.width=10}
-patchwork::wrap_plots(pca, iris, nrow = 1, guides = 'collect')
+patchwork::wrap_plots(pca, iris, nrow = 1, guides = "collect")
 ```
 
 # Taxon stats
@@ -265,9 +278,9 @@ From the PCA loadings and barplots above, we have some strong suspicions about w
 This is often called "differential abundance" testing, in the style of "differential expression" testing from the transcriptomics field.
 
 ```{r}
-shao4 %>% 
+shao4 %>%
   comp_barplot(
-    tax_level = 'genus', n_taxa = 12, facet_by = 'birth_mode',
+    tax_level = "genus", n_taxa = 12, facet_by = "birth_mode",
     label = NULL, bar_outline_colour = NA
   ) +
   coord_flip() +
@@ -280,11 +293,11 @@ We will start by creating a linear regression model for one genus, Bacteroides.
 We will transform the count data by first making it proportions, and then taking the binary logarithm, log2, after adding a pseudocount.
 
 ```{r}
-bacteroidesRegression1 <- shao4 %>% 
-  tax_transform("compositional", rank = "genus") %>% 
+bacteroidesRegression1 <- shao4 %>%
+  tax_transform("compositional", rank = "genus") %>%
   tax_transform("log2", zero_replace = "halfmin", chain = TRUE) %>%
-  tax_model(type = "lm", rank = "genus", taxa = "Bacteroides", variables = "birth_mode") %>% 
-  pluck(1) 
+  tax_model(type = "lm", rank = "genus", taxa = "Bacteroides", variables = "birth_mode") %>%
+  pluck(1)
 
 # looking at the regression results
 summary(bacteroidesRegression1)
@@ -307,10 +320,10 @@ Starting from a dataframe like the one produced by the code below, plot:
 3.  Hard: Do task 1 or 2 for for several taxa in one plot - (hint: `pivot_longer`)
 
 ``` r
-  shao4 %>% 
-  tax_transform("compositional", rank = "genus") %>% 
-  ps_get() %>% 
-  ps_otu2samdat(taxa = 'Bacteroides') %>% 
+shao4 %>%
+  tax_transform("compositional", rank = "genus") %>%
+  ps_get() %>%
+  ps_otu2samdat(taxa = "Bacteroides") %>%
   samdat_tbl()
 ```
 
@@ -321,24 +334,24 @@ We are going to convert the categorical variables into indicator (dummy) variabl
 You'll see this will make our subsequent plots easier to interpret later.
 
 ```{r}
-shao4 <- shao4 %>% 
+shao4 <- shao4 %>%
   ps_mutate(
-    C_section = if_else(birth_mode == 'c_section', true = 1, false = 0),
-    Female = if_else(sex == 'female', true = 1, false = 0),
+    C_section = if_else(birth_mode == "c_section", true = 1, false = 0),
+    Female = if_else(sex == "female", true = 1, false = 0),
     Birth_weight_Z = scale(birth_weight, center = TRUE, scale = TRUE),
     Reads_Z = scale(number_reads, center = TRUE, scale = TRUE)
   )
 ```
 
 ```{r}
-bacteroidesRegression2 <- shao4 %>% 
-  tax_transform("compositional", rank = "genus") %>% 
+bacteroidesRegression2 <- shao4 %>%
+  tax_transform("compositional", rank = "genus") %>%
   tax_transform("log2", zero_replace = "halfmin", chain = TRUE) %>%
   tax_model(
-    type = "lm", rank = "genus", taxa = "Bacteroides", 
-    variables = c('C_section', 'Female', 'Birth_weight_Z', 'Reads_Z')
-  ) %>% 
-  pluck(1) 
+    type = "lm", rank = "genus", taxa = "Bacteroides",
+    variables = c("C_section", "Female", "Birth_weight_Z", "Reads_Z")
+  ) %>%
+  pluck(1)
 
 # looking at the regression results
 summary(bacteroidesRegression2)
@@ -347,7 +360,7 @@ broom::tidy(bacteroidesRegression2, conf.int = TRUE)
 
 ### Many methods
 
-This method is what MaAsLin2 does by default (except they call the compositional transformation "Total Sum Scaling (TSS)"). This is quite an uncomplicated method, so we will stick with this for today, but many statistical methods have been developed for differential abundance analyses.
+This method is what MaAsLin2 does by default (except they call the compositional transformation "Total Sum Scaling (TSS)"). This is quite a straightforward method, so we will stick with this for today, but many statistical methods have been developed for differential abundance analyses.
 
 Microbiome abundance data are quite awkward, statistically speaking, due to their sparseness and compositionality.
 Each successive method claims to handle some aspect of this awkwardness "better" than previous methods.
@@ -360,7 +373,9 @@ Results are surprisingly inconsistent across the different methods, as demonstra
 
 -   Filter out the noise & interpret results with caution! use multiple testing corrections
 -   Remember it's all relative (abundance)
--   Try multiple methods and/or use same method as previous study if replicating - Avoid Lefse and edgeR? - Beware: Not all methods allow covariate adjustment & few allow random effects (for time-series)
+-   Try multiple methods and/or use same method as previous study if replicating 
+    - Avoid Lefse and edgeR? 
+    - Beware: Not all methods allow covariate adjustment & few allow random effects (for time-series)
 
 ## Model all the taxa!
 
@@ -369,7 +384,7 @@ And often it's also hard to decide which taxonomic rank we are most interested i
 
 *Lower ranks like species or ASVs give better resolution but also more sparsity and classification uncertainty...* *Higher ranks e.g. classes, could also be more powerful if you think most taxa within that class will follow a similar pattern.*
 
-Insert meme here?
+![](./images/model-all-the-taxa.jpg)
 
 So now we will fit a similar model for almost\* every taxon at every rank we have available, from phylum down to species.
 

@@ -30,8 +30,7 @@ library(shiny)
 
 ```{r}
 mice <- readRDS(here::here('data/mice.rds'))
-load(here::here('data/shao19.rda'))
-shao19 <- tax_fix(shao19, verbose = FALSE) %>% tax_names2rank("species")
+shao19 <- readRDS(here::here('data/shao19.rds'))
 ```
 
 
