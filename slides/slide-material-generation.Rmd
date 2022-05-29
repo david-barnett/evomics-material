@@ -25,6 +25,8 @@ mice <- readRDS(here::here("data/mice.rds"))
 shao19 <- readRDS(here::here('data/shao19.rds'))
 ```
 
+# Barplots aligned
+
 Okay, so how do we look at the microbiota abundance data?
 To do this, we're going to use the R package `microViz`
 
@@ -43,6 +45,7 @@ mice %>%
 ```{r}
 miceBarplotList <- list()
 ```
+
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -177,8 +180,75 @@ A note on phylum names!
 There have been major changes this year and some of these are now old names.
 Most published research is of course with the old names (and still probably will be for a year or so).
 
-INSERT NAME CONVERSION TABLE.
 
 ```{r}
 saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = "hv"), file = here::here("slides/data/barplots.rds"))
 ```
+
+# Differential abundance
+
+```{r}
+manyTimepointInfants <- shao19 %>%
+  samdat_tbl() %>%
+  group_by(subject_id) %>%
+  summarise(n = n()) %>%
+  filter(n > 3) %>%
+  pull(subject_id)
+```
+
+
+```{r}
+treeModels <- shao19 %>%
+  ps_filter(!is.na(infant_age), subject_id %in% manyTimepointInfants) %>%
+  ps_mutate(
+    `Infant_Age` = scale(as.numeric(infant_age)),
+    `C_section` = if_else(birth_mode == "c_section", 1, 0, missing = 0)
+    ) %>%
+  tax_fix() %>%
+  tax_prepend_ranks(sep = "_") %>%
+  tax_transform(rank = NA, trans = "compositional") %>%
+  tax_filter(min_prevalence = 0.1, undetected = 0, use_counts = FALSE) %>%
+  tax_transform(rank = NA, trans = "log2", zero_replace = "halfmin", chain = TRUE) %>%
+  taxatree_models(
+    ranks = 1:5, type = "lm", variables = c("C_section", "Infant_Age")
+  )
+```
+
+
+```{r}
+treeStats <- treeModels %>% taxatree_models2stats()
+```
+
+
+```{r}
+treePlots <- treeStats %>%
+  taxatree_plots(node_size_range = c(1,3))
+treePlotsCol <- patchwork::wrap_plots(treePlots, ncol = 1, guides = "collect")
+```
+
+
+```{r}
+treeKey <- treeStats %>%
+  taxatree_plotkey(
+    rank %in% c("phylum", 'genus'),
+    taxon_renamer = function(x) gsub('\\w_', '', x)
+  )
+```
+
+
+```{r}
+treesCombined <- patchwork::wrap_plots(
+  patchwork::plot_spacer(), treeKey, patchwork::plot_spacer(), treePlotsCol,
+  nrow = 1, widths = c(0.15, 2, 0.1, 1)
+)
+```
+
+
+```{r}
+treesCombined %>%
+  ggsave(
+    plot = ., filename = here::here("slides/images/trees.png"), 
+    device = "png", dpi = 600, width = 850/92, height = 430/92, units = "in"
+  )
+```
+

@@ -158,7 +158,9 @@ shao4_sorted %>%
 
 <details>
 
-Overview of CoDa problem.
+<summary>
+**Overview of CoDa problem.**
+</summary>
 
 The sequencing data gives us relative abundances, not absolute abundances.
 The total number of reads sequenced per sample is an arbitrary total.
@@ -182,6 +184,19 @@ For more details, check out Gloor 2017, and work by Thomas Quinn.
 TODO: link.
 
 </details>
+
+## Fun with Heatmaps
+
+Heatmaps look much better when you sort the rows by similarity (using distances and hierarchical clustering!).
+
+More examples/tutorial of visualizing microbiome data using heatmaps can be found here:
+
+https://david-barnett.github.io/microViz/articles/web-only/heatmaps.html 
+
+```{r}
+
+```
+
 
 ## PCA
 
@@ -251,9 +266,10 @@ There are caveats and nuance to the interpretation of these plots, which are cal
 
 *(Side note, Phocaeicola were considered part of Bacteroides until this year!)*
 
+You might have already noticed this pattern, when exploring and making barplots interactively with `ord_explore` earlier.
+
 ### Iris plot
 
-You might have already noticed this pattern, when exploring and making barplots interactively with `ord_explore` earlier.
 We can make another kind of barplot now, using the PCA information to order our samples in a circular layout.
 
 ```{r}
@@ -263,7 +279,8 @@ iris <- shao4 %>%
   ord_calc(method = "PCA") %>%
   ord_plot_iris(
     tax_level = "genus", n_taxa = 12, other = "Other",
-    anno_colour = "birth_mode", anno_colour_style = list(alpha = 0.6, size = 0.6, show.legend = FALSE)
+    anno_colour = "birth_mode", 
+    anno_colour_style = list(alpha = 0.6, size = 0.6, show.legend = FALSE)
   )
 iris
 ```
@@ -382,11 +399,14 @@ Results are surprisingly inconsistent across the different methods, as demonstra
 We're not normally interested in just one taxon!
 And often it's also hard to decide which taxonomic rank we are most interested in modelling!
 
+
 *Lower ranks like species or ASVs give better resolution but also more sparsity and classification uncertainty...* *Higher ranks e.g. classes, could also be more powerful if you think most taxa within that class will follow a similar pattern.*
 
-![](./images/model-all-the-taxa.jpg)
 
 So now we will fit a similar model for almost\* every taxon at every rank we have available, from phylum down to species.
+
+![](./images/model-all-the-taxa.jpg){width="50%"}
+
 
 \*We'll actually filter out species with a prevalence of less than 10%.
 
@@ -467,9 +487,6 @@ key
 You can do more with these trees to customise them to your liking.
 See an extended tutorial [here on the microViz website](https://david-barnett.github.io/microViz/articles/web-only/modelling-taxa.html#plot-all-the-taxatree_stats): including how to directly label taxa on the colored plots, change the layout and style of the trees, and even how to use a different regression modelling approach.
 
-# Fin.
-
-End workshop with recap and notes/pointers on current trends and topics not covered?
 
 # Session info
 

@@ -11,7 +11,7 @@
 
 <meta name="author" content="David Barnett" />
 
-<meta name="date" content="2022-05-28" />
+<meta name="date" content="2022-05-29" />
 
 <title>Diversity slides figure generation</title>
 
@@ -1542,7 +1542,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Diversity slides figure generation</h1>
 <h4 class="author">David Barnett</h4>
-<h4 class="date">2022-05-28</h4>
+<h4 class="date">2022-05-29</h4>
 
 </div>
 
@@ -1554,8 +1554,9 @@ library(ggplot2)
 library(phyloseq)
 library(microViz)</code></pre>
 <pre class="r"><code>mice &lt;- readRDS(here::here(&quot;data/mice.rds&quot;))
-load(here::here(&quot;data/shao19.rda&quot;))
-shao19 &lt;- tax_fix(shao19, verbose = FALSE) %&gt;% tax_names2rank(&quot;species&quot;)</code></pre>
+shao19 &lt;- readRDS(here::here(&#39;data/shao19.rds&#39;))</code></pre>
+<div id="barplots-aligned" class="section level1">
+<h1>Barplots aligned</h1>
 <p>Okay, so how do we look at the microbiota abundance data? To do this,
 we’re going to use the R package <code>microViz</code></p>
 <p>Lets take a very small subset of this data to get started, just the
@@ -1672,8 +1673,78 @@ could not be classified at genus level.</p>
 <p>A note on phylum names! There have been major changes this year and
 some of these are now old names. Most published research is of course
 with the old names (and still probably will be for a year or so).</p>
-<p>INSERT NAME CONVERSION TABLE.</p>
 <pre class="r"><code>saveRDS(cowplot::align_plots(plotlist = miceBarplotList, align = &quot;hv&quot;), file = here::here(&quot;slides/data/barplots.rds&quot;))</code></pre>
+</div>
+<div id="differential-abundance" class="section level1">
+<h1>Differential abundance</h1>
+<pre class="r"><code>manyTimepointInfants &lt;- shao19 %&gt;%
+  samdat_tbl() %&gt;%
+  group_by(subject_id) %&gt;%
+  summarise(n = n()) %&gt;%
+  filter(n &gt; 3) %&gt;%
+  pull(subject_id)</code></pre>
+<pre class="r"><code>treeModels &lt;- shao19 %&gt;%
+  ps_filter(!is.na(infant_age), subject_id %in% manyTimepointInfants) %&gt;%
+  ps_mutate(
+    `Infant_Age` = scale(as.numeric(infant_age)),
+    `C_section` = if_else(birth_mode == &quot;c_section&quot;, 1, 0, missing = 0)
+    ) %&gt;%
+  tax_fix() %&gt;%
+  tax_prepend_ranks(sep = &quot;_&quot;) %&gt;%
+  tax_transform(rank = NA, trans = &quot;compositional&quot;) %&gt;%
+  tax_filter(min_prevalence = 0.1, undetected = 0, use_counts = FALSE) %&gt;%
+  tax_transform(rank = NA, trans = &quot;log2&quot;, zero_replace = &quot;halfmin&quot;, chain = TRUE) %&gt;%
+  taxatree_models(
+    ranks = 1:5, type = &quot;lm&quot;, variables = c(&quot;C_section&quot;, &quot;Infant_Age&quot;)
+  )</code></pre>
+<pre><code>## Proportional min_prevalence given: 0.1 --&gt; min 44/436 samples.</code></pre>
+<pre><code>## 2022-05-29 16:36:16 - modelling at rank: phylum</code></pre>
+<pre><code>## 2022-05-29 16:36:16 - modelling at rank: class</code></pre>
+<pre><code>## 2022-05-29 16:36:16 - modelling at rank: order</code></pre>
+<pre><code>## 2022-05-29 16:36:16 - modelling at rank: family</code></pre>
+<pre><code>## 2022-05-29 16:36:16 - modelling at rank: genus</code></pre>
+<pre class="r"><code>treeStats &lt;- treeModels %&gt;% taxatree_models2stats()</code></pre>
+<pre class="r"><code>treePlots &lt;- treeStats %&gt;%
+  taxatree_plots(node_size_range = c(1,3))
+treePlotsCol &lt;- patchwork::wrap_plots(treePlots, ncol = 1, guides = &quot;collect&quot;)</code></pre>
+<pre class="r"><code>treeKey &lt;- treeStats %&gt;%
+  taxatree_plotkey(
+    rank %in% c(&quot;phylum&quot;, &#39;genus&#39;),
+    taxon_renamer = function(x) gsub(&#39;\\w_&#39;, &#39;&#39;, x)
+  )</code></pre>
+<pre class="r"><code>treesCombined &lt;- patchwork::wrap_plots(
+  patchwork::plot_spacer(), treeKey, patchwork::plot_spacer(), treePlotsCol,
+  nrow = 1, widths = c(0.15, 2, 0.1, 1)
+)</code></pre>
+<pre class="r"><code>treesCombined %&gt;%
+  ggsave(
+    plot = ., filename = here::here(&quot;slides/images/trees.png&quot;), 
+    device = &quot;png&quot;, dpi = 600, width = 850/92, height = 430/92, units = &quot;in&quot;
+  )</code></pre>
+<pre><code>## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.
+
+## Warning: data frame results in `filter()` are deprecated, use `if_any()` or
+## `if_all()`.</code></pre>
+</div>
 
 
 

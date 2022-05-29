@@ -705,11 +705,14 @@ q 5</code></pre>
 </ul>
 </div>
 </section>
-<section id="compositional-data-problem" class="slide level2 smaller">
+<section id="compositional-data-problem" class="slide level2 smaller" data-transition="convex">
 <h2>Compositional data problem</h2>
 
 <img data-src="images/gloor-2017.jpg" class="r-stretch"><p>Gloor 2017 - Microbiome Datasets are Compositional: and this is not optional.</p>
 <aside class="notes">
+<p>The total number of reads number of sequence counts is not a good measure of microbial biomass. It is an arbitrary sum, more reads only gets you higher precision and more reliable estimates of the proportions. I mentioned this briefly when we started making bar charts.</p>
+<p>In this nice diagram from a paper by Prof Gregory Gloor, we see what this means for data interpretation. First part of B shows true abundance of 2 bacterial taxa in a simple ecosystem. Using sample 1 as the reference, if we compare this to sample 2, the true abundance of taxon B has decreased, and A is the same. In sample 3, A has increased, whilst B stays the same.</p>
+<p>But from sequencing data we only know the relative abundance. So samples 2 and 3 look identical! That is the interpretation problem. But this also causes a statistical problem.</p>
 <p>Gloor 2017 is a good read, including the extensive educational supplementary material!.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -722,7 +725,184 @@ q 5</code></pre>
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-<div class="footer footer-default">
+</section>
+<section id="section" class="slide level2" data-transition="convex">
+<h2></h2>
+
+<img data-src="images/gloor-slide-constant-sum.png" class="r-stretch"><aside class="notes">
+<p>Constant sum, 1000 in this three taxon toy example. Causes taxa abundances to be appear correlated, on average. The counts exist in what is called the Aitchison simplex space. With 3 taxa, this space can be visualised on a ternary diagram, with 3 interconnected axes. We need to escape the simplex, back to unconstrained real space, this is what the CLR does.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="section-1" class="slide level2 smaller" data-transition="convex">
+<h2></h2>
+
+<img data-src="images/gloor-clr-slide.jpg" class="r-stretch"><aside class="notes">
+<p>Another slide from Prof Gloor. X is a sample vector where x1, x2 etc are the counts of each taxon in that sample.</p>
+<p>After the CLR transformation, the abundance of each taxon is expressed relative to the other taxa in the sample. This transformation takes us back to real geometric space.</p>
+<p>Confused? Don’t worry, if you’re interested check out that paper by Gloor. If not just know that you’ll often see microbiome data transformed in this way, and it makes the PCoA plots look better.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="aitchison-pcoa-clr-euclidean" class="slide level2" data-transition="convex">
+<h2>Aitchison PCoA (CLR + Euclidean)</h2>
+
+<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-18-1.png" width="720" class="r-stretch"></section>
+<section id="pca---wheres-the-o-gone" class="slide level2 smaller" data-transition="convex">
+<h2>PCA - where’s the “o” gone?</h2>
+<p>Principal Components Analysis (not Co-ordinates)</p>
+<ul>
+<li>Similar aim to PCoA (and name!)</li>
+<li>But doesn’t use distances!</li>
+<li>Rotation of original dimensions (taxa)</li>
+<li>Euclidean PCoA equivalent results to PCA</li>
+</ul>
+
+<img data-src="images/pca-gif.gif" class="r-stretch"></section>
+<section id="principal-components-analysis---pca" class="slide level2" data-transition="convex">
+<h2>Principal Components Analysis - PCA</h2>
+
+<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-19-1.png" width="720" class="r-stretch"><aside class="notes">
+<p>Looks exactly the same as the PCoA plot with CLR euclidean distances.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="pca-provides-taxa-loadings" class="slide level2" data-transition="convex">
+<h2>PCA provides (taxa) loadings!</h2>
+
+<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-20-1.png" width="720" class="r-stretch"><aside class="notes">
+<p>How to interpret the taxa loading vectors? Cautiously. There are plenty of caveats and nuance to the interpretation of these plots, which are called PCA bi-plots, and you can read more about here.</p>
+<p>The relative length and direction of an arrow indicates how much that taxon contributes to the variation on each visible PC axis. e.g. Variation in Enterococcus contributes quite a lot to variation along the PC2 axis.</p>
+<p>This allows you to infer that samples positioned at the bottom of the plot will tend to have higher relative abundance of Enterococcus than samples at the top of the plot.</p>
+<p>Interestingly, samples on the right of the plot (which tend to be vaginally-delivered infants) seem to have relatively more Bifidobacterium, Bacteroides and Escherichia, whilst the C-section born infants have relatively more Veillonella.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="pca-sorted-bar-chart-iris-plot" class="slide level2">
+<h2>PCA-sorted bar chart (iris plot)</h2>
+<div class="cell">
+
+</div>
+
+<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-22-1.png" width="1200" class="r-stretch"><aside class="notes">
+<p>We can make another kind of barplot now, using the PCA information to order our samples in a circular layout.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="differential-abundance" class="title-slide slide level1 center" data-transition="convex">
+<h1>Differential Abundance</h1>
+<ul>
+<li>like RNA Seq. Differential Expression</li>
+<li>but for microbial taxon abundances</li>
+</ul>
+<aside class="notes">
+<p>So far we have looked at patterns in microbiota data using multiple taxa at once. You should start microbiome analysis with multivariate exploration and testing, with PCA, PERMANOVA and alpha diversity, to establish if there are any interesting overall microbiome differences in your microbiota data. If you find evidence from multivariate analyses, you don’t need to stop there. It is of course possible and interesting to also look at one taxon at a time.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="differential-abundance---aim" class="slide level2" data-transition="convex">
+<h2>Differential Abundance - aim</h2>
+<div>
+<ul>
+<li class="fragment">Is experimental condition X associated with relative abundance of bacterial genus Y?</li>
+<li class="fragment">Is environmental exposure X associated with …?</li>
+<li class="fragment">Is host characteristic X associated with… ?</li>
+</ul>
+</div>
+</section>
+<section id="differential-abundance---methods" class="slide level2 smaller" data-transition="convex">
+<h2>Differential Abundance - methods</h2>
+<div>
+<ul>
+<li class="fragment"><strong>Simple methods</strong>: Wilcoxon tests, Spearman corr., Linear Reg.</li>
+<li class="fragment"><strong>CoDa methods</strong>: ALDEx2, ANCOM-II, ANCOM-BC</li>
+<li class="fragment"><strong>RNA seq. methods</strong>: DESeq2, limma, edgeR</li>
+<li class="fragment"><strong>Other</strong>: LEfSe, Beta-binomial reg., ZINB reg., ZIGDM reg., …!</li>
+</ul>
+</div>
+
+<img data-src="images/Nearing-preprint-disturbing.png" class="r-stretch"></section>
+<section id="differential-abundance---which-rank" class="slide level2" data-transition="convex">
+<h2>Differential Abundance - which rank?</h2>
+
+<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-23-1.png" width="720" class="r-stretch"></section>
+<section id="differential-abundance-with-microviz" class="slide level2" data-transition="convex">
+<h2>Differential Abundance with microViz</h2>
+<p>Keep it simple (-ish)</p>
+<div>
+<ul>
+<li class="fragment"><p>Filter out rare taxa strictly (&gt;5% prev or more)</p></li>
+<li class="fragment"><p>Linear regression models</p>
+<ul>
+<li class="fragment">Log2 transform of taxon proportions</li>
+<li class="fragment">(approach borrowed from Maaslin2)</li>
+</ul></li>
+<li class="fragment"><p>Model every taxon, at all ranks</p>
+<ul>
+<li class="fragment">Visualize on a cladogram tree</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="differential-abundance-1" class="slide level2" data-transition="convex">
+<h2>Differential Abundance</h2>
+
+<img data-src="images/trees.png" class="r-stretch"><div class="footer footer-default">
 
 </div>
 </section></section>

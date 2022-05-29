@@ -38,7 +38,7 @@ The first is from a study of antibiotic administration in mice, and the second i
 
 Each dataset was generated using different sequencing techniques, and different sequence data processing approaches.
 But the analyses approaches we will learn today can be readily applied to both methods.
-(The approaches are also appropriate for data other than the gut microbiota! but there is a lot of example gut microbiota data out there.)
+(The approaches are also appropriate for data other than the gut microbiota!)
 
 -   `mice` is 16S rRNA gene amplicon sequencing data, from the mouse antibiotics study
     -   They used Illumina MiSeq and processed the data into ASVs using DADA2
@@ -70,7 +70,7 @@ Sequence data was generated from extracted nucleic acid from stool samples colle
 
 The study followed flavivirus infection after the following treatments:
 
-1)  Koolaid: Antibiotics are provided to the mice via their drinking water. As many of the antibiotics taste bad, koolaid is added as a sweetener Therefore, the appropriate control is water spiked and labelled *koolaid*.
+1)  Koolaid: Antibiotics are provided to the mice via their drinking water. As many of the antibiotics taste bad, koolaid is added as a sweetener. Therefore, the appropriate control is water spiked and labelled *koolaid*.
 2)  Ampicillin (Amp): <https://en.wikipedia.org/wiki/Ampicillin>
 3)  Metronidazole (Met): <https://en.wikipedia.org/wiki/Metronidazole>
 4)  Ampicillin + Metronidazole (Amp+Metro)
@@ -148,7 +148,7 @@ mice %>%
   coord_flip() 
 ```
 
-Rats, what is this junk?
+What is going on here??
 The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table.
 
 The total number of reads also varies a lot between samples!
@@ -266,6 +266,23 @@ mice %>%
 A note on phylum names!
 There have been major changes this year and some of these are now old names.
 Most published research is of course with the old names (and still probably will be for a year or so).
+
+# Fun with barcharts
+
+More examples/tutorial of visualizing microbiome data using stacked barcharts can be found here:
+https://david-barnett.github.io/microViz/articles/web-only/compositions.html
+
+Try it out for yourself a bit!
+
+Bar charts often look better when you sort the samples by similarity.
+The webpage mentions using Bray-Curtis distances and hierarchical clustering to 
+sort samples. We haven't discussed dissimilarity or distances yet, but we will in the next session today!
+
+For now, just appreciate that it can make the bar charts easier to read!
+
+```{r}
+
+```
 
 # Alpha diversity
 

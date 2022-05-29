@@ -313,6 +313,7 @@ The centered log-ratio (clr) transformation uses the geometric mean of the sampl
 
 :::
 
+
 ## Compositional data problem {.smaller transition="convex"}
 
 ![](images/gloor-2017.jpg)
@@ -337,28 +338,207 @@ Gloor 2017 is a good read, including the extensive educational supplementary mat
 ## {transition="convex"}
 
 ![](images/gloor-slide-constant-sum.png)
-::: notes
-Constant sum (1000 in this three taxon toy example)
-Causes taxa abundances to be appear correlated (on average).
+
+::: {.notes}
+Constant sum, 1000 in this three taxon toy example.
+Causes taxa abundances to be appear correlated, on average.
 The counts exist in what is called the Aitchison simplex space.
 With 3 taxa, this space can be visualised on a ternary diagram, with 3 interconnected axes. 
 We need to escape the simplex, back to unconstrained real space, this is what the CLR does.
 :::
 
-## 
+
+## {.smaller transition="convex"}
 
 ![](images/gloor-clr-slide.jpg)
 
 ::: notes
+
 Another slide from Prof Gloor.
 X is a sample vector where x1, x2 etc are the counts of each taxon in that sample.
 
 After the CLR transformation, the abundance of each taxon is expressed relative to the other taxa in the sample. This transformation takes us back to real geometric space.
 
 Confused? Don't worry, if you're interested check out that paper by Gloor.
-If not just know that you'll often see microbiome data transformed in this way, and it makes the PCoA plots look better!
+If not just know that you'll often see microbiome data transformed in this way, and it makes the PCoA plots look better.
+
 ::: 
 
-## Aitchison PCoA (clr + euclidean distance)
+## Aitchison PCoA (CLR + Euclidean) {transition="convex"}
+
+```{r}
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  dist_calc(dist = "euclidean") %>%
+  ord_calc(method = "PCoA") %>%
+  ord_plot(alpha = 0.6, size = 2, color = "birth_mode") +
+  theme_classic(12) +
+  coord_fixed(0.7) +
+  scale_y_reverse()
+```
+
+
+## PCA - where's the "o" gone? {.smaller transition="convex"}
+
+Principal Components Analysis (not Co-ordinates)
+
+- Similar aim to PCoA (and name!)
+- But doesn't use distances!
+- Rotation of original dimensions (taxa)
+- Euclidean PCoA equivalent results to PCA
+
+![](images/pca-gif.gif)
+
+## Principal Components Analysis - PCA {transition="convex"}
+
+```{r}
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  ord_calc(method = "PCA") %>%
+  ord_plot(alpha = 0.6, size = 2, color = "birth_mode") +
+  theme_classic(12) +
+  coord_fixed(0.7)
+```
+
+::: notes
+Looks exactly the same as the PCoA plot with CLR euclidean distances.
+:::
+
+## PCA provides (taxa) loadings! {transition="convex"}
+
+```{r}
+pca <- shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  ord_calc(method = "PCA") %>%
+  ord_plot(
+    alpha = 0.6, size = 2, color = "birth_mode",
+    plot_taxa = 1:6, tax_vec_length = 0.275,
+    tax_lab_style = tax_lab_style(
+      type = "text", max_angle = 90, aspect_ratio = 0.7,
+      size = 3, fontface = "bold"
+    ),
+    ) +
+  theme_classic(12) +
+  coord_fixed(0.7)
+pca
+```
+
+::: notes
+How to interpret the taxa loading vectors?
+Cautiously. 
+There are plenty of caveats and nuance to the interpretation of these plots, which are called PCA bi-plots, and you can read more about here.
+
+The relative length and direction of an arrow indicates how much that taxon contributes to the variation on each visible PC axis.
+e.g.
+Variation in Enterococcus contributes quite a lot to variation along the PC2 axis.
+
+This allows you to infer that samples positioned at the bottom of the plot will tend to have higher relative abundance of Enterococcus than samples at the top of the plot.
+
+Interestingly, samples on the right of the plot (which tend to be vaginally-delivered infants) seem to have relatively more Bifidobacterium, Bacteroides and Escherichia, whilst the C-section born infants have relatively more Veillonella.
+:::
+
+## PCA-sorted bar chart (iris plot)
+
+```{r}
+iris <- shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_transform(rank = "genus", trans = "clr", zero_replace = "halfmin") %>%
+  ord_calc(method = "PCA") %>%
+  ord_plot_iris(
+    tax_level = "genus", n_taxa = 10, other = "Other",
+    anno_colour = "birth_mode", 
+    anno_colour_style = list(alpha = 0.6, size = 0.6, show.legend = FALSE)
+  )
+```
+
+```{r, fig.height=5.5, fig.width=10}
+patchwork::wrap_plots(pca, iris, nrow = 1, guides = "collect")
+```
+
+::: notes 
+We can make another kind of barplot now, using the PCA information to order our samples in a circular layout.
+:::
+
+# Differential Abundance {transition="convex"}
+
+- like RNA Seq. Differential Expression
+- but for microbial taxon abundances
+
+::: notes
+So far we have looked at patterns in microbiota data using multiple taxa at once.
+You should start microbiome analysis with multivariate exploration and testing, with PCA, PERMANOVA and alpha diversity, to establish if there are any interesting overall microbiome differences in your microbiota data. If you find evidence from multivariate analyses, you don't need to stop there.
+It is of course possible and interesting to also look at one taxon at a time.
+:::
+
+## Differential Abundance - aim {transition="convex"}
+
+::: incremental
+
+-   Is experimental condition X associated with relative abundance of bacterial genus Y?
+-   Is environmental exposure X associated with ...?
+-   Is host characteristic X associated with... ?
+
+:::
+
+## Differential Abundance - methods {.smaller transition="convex"}
+
+::: incremental
+
+- **Simple methods**: Wilcoxon tests, Spearman corr., Linear Reg.
+- **CoDa methods**: ALDEx2, ANCOM-II, ANCOM-BC
+- **RNA seq. methods**: DESeq2, limma, edgeR
+- **Other**: LEfSe, Beta-binomial reg., ZINB reg., ZIGDM reg., ...!
+
+:::
+
+![](images/Nearing-preprint-disturbing.png)
+
+## Differential Abundance - which rank? {transition="convex"}
+
+```{r}
+shao19 %>%
+  tax_fix() %>%
+  tax_prepend_ranks(sep = "_") %>%
+  tax_transform(rank = NA, trans = "compositional") %>%
+  tax_filter(min_prevalence = 0.1, undetected = 0, use_counts = FALSE) %>%
+  tax_mutate(unique = NULL) %>% 
+  taxatree_plotkey(
+    circular = FALSE, .draw_label = FALSE,
+    rank %in% c("phylum", "class", "order", "family", "genus")
+  ) %>% 
+  taxatree_plot_labels(
+    circular = FALSE, 
+    taxon_renamer = function(x) stringr::str_remove(x, "[pcofg]_"),
+    hjust = 0.5, force = 0, nudge_y = 0, size = 1.75
+  )  + 
+  coord_flip() + 
+  scale_y_reverse() +
+  theme(plot.title = element_blank())
+```
+
+
+## Differential Abundance with microViz {transition="convex"}
+
+Keep it simple (-ish)
+
+::: incremental
+
+-  Filter out rare taxa strictly (>5% prev or more)
+
+-  Linear regression models
+    -  Log2 transform of taxon proportions
+    -  (approach borrowed from Maaslin2)
+
+-  Model every taxon, at all ranks
+    -  Visualize on a cladogram tree
+
+:::
+
+## Differential Abundance {transition="convex"}
+
+![](images/trees.png)
 
 
