@@ -10,6 +10,7 @@ format:
     pause: false
     fig-responsive: false
     history: false
+    multiplex: true
 editor: visual
 ---
 
