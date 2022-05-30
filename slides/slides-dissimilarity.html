@@ -400,20 +400,22 @@
 </section>
 <section id="from-diversity-to-dissimilarity" class="slide level2" data-transition="convex-in convex-out">
 <h2>From Diversity to Dissimilarity</h2>
-<div>
+<div class="fragment">
 <ul>
-<li class="fragment"><strong>Alpha diversity</strong>:
+<li><strong>Alpha diversity</strong>:
 <ul>
-<li class="fragment">Summarizing one sample</li>
-<li class="fragment"><em>“How diverse is this ecosystem?”</em></li>
+<li>Summarizing one sample</li>
+<li><em>“How diverse is this ecosystem?”</em></li>
 </ul></li>
 </ul>
 <p><br></p>
+</div>
+<div class="fragment">
 <ul>
-<li class="fragment"><strong>Dissimilarity</strong>:
+<li><strong>Dissimilarity</strong>:
 <ul>
-<li class="fragment">Comparing a pair of samples</li>
-<li class="fragment"><em>“How different are these two ecosystems?”</em></li>
+<li>Comparing a pair of samples</li>
+<li><em>“How different are these two ecosystems?”</em></li>
 </ul></li>
 </ul>
 </div>
@@ -537,6 +539,19 @@ Z 0.88 0.81 0.00</code></pre>
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>The first dissimilarity measure to discuss is the Binary Jaccard. You simply count the number of taxa that occur in both samples, and divide that by the total number of distinct taxa across both samples. That gives you a measure of similarity, as the more taxa shared, the more similar 2 ecosystems are. 1 minus that shared proportion, gives you the binary Jaccard dissimilarity measure. I’ve calculated the binary jaccard distances at family level, using the simple code here. You see we get a little pairwise distance matrix, here’s the dissimilarity between X and Y, X and Z, and Y and Z. The diagonal is distance of each sample from itself, so 0 of course. The maximum value is 1, where no taxa are shared between samples.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="dissimilarity-measures---quantitative" class="slide level2" data-auto-animate="true">
 <h2 data-id="quarto-animate-title">Dissimilarity measures - quantitative</h2>
@@ -569,6 +584,9 @@ Z 0.78 0.48 0.00</code></pre>
 </div>
 </div>
 <aside class="notes">
+<p>Okay, so Binary Jaccard ignores information about the relative abundance of each taxon. We would call that a “qualitative” or “unweighted” dissimilarity measure. Bray-Curtis is a popular “quantitative” or “abundance-weighted” ecological dissimilarity measure.</p>
+<p>A is total readcounts of all taxa in sample 1, B is total readcounts for the other sample. W is harder to explain. For every taxon shared by both samples, you take the smaller number of counts, and add up those values for every taxon.</p>
+<p>In general I would prefer an abundance weighted dissimilarity measure, to an unweighted one, as unweighted measures are overly sensitive to small differences relating to low abundance taxa. But it depends on your research question.</p>
 <p>https://www.davidzeleny.net/anadat-r/doku.php/en:similarity Has good details.</p>
 <p>This is manual calculation of BC between samples X and Y. <code>shao3 %&gt;% tax_transform('identity', "genus") %&gt;% otu_get() %&gt;% t() %&gt;% as.data.frame() %&gt;% mutate(min = pmin(X, Y)) %&gt;% summarise(W = sum(min), A = sum(X), B = sum(Y)) %&gt;% summarise(PS = 2*W / (A + B). BC = 1 - PS)</code></p>
 <style type="text/css">
@@ -588,6 +606,20 @@ Z 0.78 0.48 0.00</code></pre>
 <p><strong>UniFrac distance</strong>: Fraction of the branch length of the phylogenetic tree that leads to taxa from either one environment (sample) or the other, but not both.</p>
 
 <img data-src="images/lozupone-unifrac.jpg" class="r-stretch"><p><em>Lozupone and Knight 2005</em></p>
+<aside class="notes">
+<p>So there are also phylogenetic or phylogeny-aware distance measures. The most famous of these is the UniFrac distance. (which is short for unique fraction) Here a phylogenetic tree indicating the genetic similarity of a few microbial taxa are shown. The tips of the tree are bacterial sequences, and the circles, triangles or squares indicate in which sample that sequence was identified. You compare pairs of samples by seeing what fraction of the branch lengths within the tree is unique to (or leading to) one sample or the other, but not both.</p>
+<p>In effect the benefit of this type of distance measure, is that samples that containing mostly distinct but similar sequences (e.g.&nbsp;species from the same genus) are closer than samples containing distinct and unrelated sequences (e.g.&nbsp;species from different phyla), Bray-Curtis etc. ignores this information!</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="dissimilarity-measures---phylogenetic-1" class="slide level2 smaller" data-background-color="white" data-transition="fade-in convex-out">
 <h2>Dissimilarity measures - phylogenetic</h2>
@@ -598,7 +630,8 @@ Z 0.78 0.48 0.00</code></pre>
 
 <img data-src="images/lozupone-weighted-unifrac.jpeg" class="r-stretch"><p><em>Lozupone et al.&nbsp;2007</em></p>
 <aside class="notes">
-<p>In example: Square sequences are weighted twice as much as circle sequences because there are twice as many total <strong>circle</strong> sequences in the dataset.</p>
+<p>There is also an abundance-weighted version of the unifrac distance. This just involves weighting the branches (effectively making them longer) by the relative abundance of sequences in the samples. There is also a generalised version of UniFrac, invented by a different group, that allows you to balance the weighting between high and low abundance taxa. This works great in my experience.</p>
+<p>Note, In example: Square sequences are weighted twice as much as circle sequences because there are twice as many total <strong>circle</strong> sequences in the dataset.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -641,6 +674,19 @@ B02258_ba_21      0.6227093    0.1732372     0.4254440     0.3792266     0.86176
 B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.7778045    0.7711461     0.4989296     0.6827537</code></pre>
 </div>
 </div>
+<aside class="notes">
+<p>So this is our distance matrix, not the easiest thing to look at by eye.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="ordination-with-pcoa-1" class="slide level2 smaller" data-auto-animate="true">
 <h2 data-id="quarto-animate-title">Ordination with PCoA</h2>
@@ -664,7 +710,10 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 </div>
 </div>
 <aside class="notes">
-<p>PCoA interpretation: - ordination method attempts to preserve the original pairwise distances between samples. So closer samples have more similar ecosystems, more distant samples have more different ecosystems.</p>
+<p>Ordination refers to the process of ordering things (in our case: samples), so that similar things (samples) are closer to each other, and dissimilar things (samples) are further away.</p>
+<p>Principal Co-ordinates Analysis is one kind of ordination.</p>
+<p>Takes distance matrix and finds new dimensions (a co-ordinate system if you like). The new dimensions are created with the aim to preserve the original distances between samples, but to capture the majority of this distance information in the first few dimensions. We like this because it makes it easier to visualize the patterns in your data (in 2D or 3D).</p>
+<p>So closer samples have more similar ecosystems, more distant samples have more different ecosystems.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -756,6 +805,19 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>Why are ordination methods useful? Here is an example. Here I have coloured the samples by the mode of delivery, how the infant was born. If we remember these were samples of the human infant gut microbiome. This plot gives us an indication that the overall bacterial ecosystem is often quite different in infants born by C-section, relative to those delivered vaginally.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="ordination-with-pcoa---useful-1" class="slide level2 smaller" data-auto-animate="true">
 <h2 data-id="quarto-animate-title">Ordination with PCoA - useful</h2>
@@ -783,6 +845,19 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>You will often see these 95% confidence ellipses added for each group to aid the eye. But we can also statistically test this overall group difference!</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="permanova" class="slide level2 smaller">
 <h2>PERMANOVA</h2>
@@ -816,16 +891,56 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>PERMANOVA is a Multivariate version of anova, analysis of variance, where the statistical significance of associations is assessed by permuting, randomly shuffling the data, to see how often a group-difference at least this extreme occurs by chance.</p>
+<p>Link to great book chapter by anderson on PERMANOVA. https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="ordination---interactive" class="slide level2 smaller" data-transition="convex-in fade-out">
 <h2>Ordination - interactive</h2>
-<p>This ordination thing is nice, but I can’t see the compositions directly…</p>
+<p>This ordination thing is nice, but I want to see the compositions directly too.</p>
 
-<img data-src="slides-dissimilarity_files/figure-revealjs/unnamed-chunk-20-1.png" width="600" class="r-stretch"></section>
+<img data-src="slides-dissimilarity_files/figure-revealjs/unnamed-chunk-20-1.png" width="600" class="r-stretch"><aside class="notes">
+<p>So maybe you are thinking…</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="section" class="slide level2" data-transition="fade">
 <h2></h2>
 
-<img data-src="images/20210429_ord_explore_x175.gif" class="r-stretch"></section></section>
+<img data-src="images/20210429_ord_explore_x175.gif" class="r-stretch"><aside class="notes">
+<p>Well during the exercises you get to play with an interactive application I created as part of the microViz package, you can see a gif here. It allows you to interactively create and style various ordination plots directly from your phyloseq object, and then you can select multiple samples to examine their compositions on bar charts.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
 <section>
 <section id="filtering-taxa" class="title-slide slide level1 center" data-transition="convex">
 <h1>Filtering taxa</h1>
@@ -875,7 +990,7 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 <h2>Rare taxa - what is rare?</h2>
 <p><strong>Two main concepts:</strong></p>
 <ul>
-<li>Low <strong>prevalence</strong> - taxon only detected in a small number of samples in your dataset.</li>
+<li>Low <strong>prevalence</strong> - taxon only detected in a few samples in your dataset.</li>
 <li>Low <strong>abundance</strong> - relatively few reads assigned to that taxon (on average or in total)</li>
 </ul>
 <div class="fragment">
@@ -897,7 +1012,8 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 </div>
 </div>
 <aside class="notes">
-<p>Consider the impact of issues 1, 2, and 3. Let’s say we are not interested in unique taxa that occur in fewer than 2% of samples, and they have to have at least 10,000 reads in total across all samples. Wow we lost a lot of taxa! Let’s look at why.</p>
+<p>Two concepts of rarity. Explain…</p>
+<p>So, let’s say for now we are not interested in species that occur in fewer than 2% of samples, and they have to have at least 10,000 reads in total across all samples. Wow we lost a lot of taxa! Let’s look at why.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -937,7 +1053,7 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 <h2>Filtering - labelled</h2>
 
 <img data-src="slides-dissimilarity_files/figure-revealjs/unnamed-chunk-26-1.png" width="720" class="r-stretch"><aside class="notes">
-<p>Let’s label those points to check which taxa are the big time players. Those taxa make sense for this dataset of mostly infant gut microbiome samples.</p>
+<p>Here I’ve labelled those points to check which taxa are the big time players. Those taxa make sense for this dataset of mostly infant gut microbiome samples. This is a nice sanity check.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -996,13 +1112,19 @@ B02317_ba_205     0.6884194    0.6588944     0.5757901     0.4987246     0.77780
 <li class="fragment">differential abundance testing = stringent filtering, prevalence &gt;5%, &gt;10%? (last topic!)</li>
 </ul>
 </div>
-</section></section>
-<section id="your-turn" class="title-slide slide level1 center" data-transition="convex">
-<h1>Your turn</h1>
+</section>
+<section id="your-turn" class="slide level2" data-transition="convex">
+<h2>Your turn</h2>
+<ul>
+<li><p>Link to exercises guidance: <a href="https://david-barnett.github.io/evomics-material/exercises/microViz-2-dissimilarity-exercises" class="uri">https://david-barnett.github.io/evomics-material/exercises/microViz-2-dissimilarity-exercises</a></p></li>
+<li><p>Try out exploring the birth cohort data, filtering taxa, making PCoA plots, and using PERMANOVA</p></li>
+<li><p>Excellent book chapter by Anderson on PERMANOVA: <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841" class="uri">https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841</a></p></li>
+<li><p>Last topics after break 8:15 to 8:45 - transformations, PCA, and differential abundance testing</p></li>
+</ul>
 <div class="footer footer-default">
 
 </div>
-</section>
+</section></section>
     </div>
   </div>
 

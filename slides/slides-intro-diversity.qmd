@@ -11,7 +11,7 @@ format:
     fig-responsive: false
     history: false
     multiplex: true
-editor: visual
+editor: source
 ---
 
 # Part 1: Diversity {transition="convex"}
@@ -32,11 +32,14 @@ miceBars <- readRDS(here::here('slides/data/barplots.rds'))
 ```
 
 ::: notes
-Okay. So before the break we processed some amplicon sequencing data with DADA2. 
-We identified the unique bacterial taxa (ASVs) in a few samples, assigned the ASVs' taxonomic classifications by mapping to a reference database, and quantified their relative abundances. 
+Okay.
+So before the break we processed some amplicon sequencing data with DADA2.
+We identified the unique bacterial taxa (ASVs) in a few samples, assigned the ASVs' taxonomic classifications by mapping to a reference database, and quantified their relative abundances.
 We finished up by placing this data into a phyloseq object.
 
-Now we're going to look at a phyloseq object containing some similar 16S amplicon sequencing data, which has been processed already with DADA2. This data comes from an experimental study of the mouse gut microbiome. There are more details on the study design and aims in the exercise material, but the details aren't important for now. 
+Now we're going to look at a phyloseq object containing some similar 16S amplicon sequencing data, which has been processed already with DADA2.
+This data comes from an experimental study of the mouse gut microbiome.
+There are more details on the study design and aims in the exercise material, but the details aren't important for now.
 :::
 
 ## Intro to phyloseq {transition="convex"}
@@ -62,7 +65,8 @@ mice
 :::
 
 ::: notes
-We read in the R data object, and print it. Now lets look at the pieces.
+We read in the R data object, and print it.
+Now lets look at the pieces.
 :::
 
 ## Taxonomy table
@@ -181,9 +185,9 @@ miceBars$bad %>% ggdraw()
 ::: notes
 We'll use the function comp_barplot to make bar plots of the microbiome composition.
 
-Each row of the plot is a different sample. 
+Each row of the plot is a different sample.
 And the bar heights represent the readcounts from each sample which are coloured by the ASV they belong to.
-But we can improve this plot. 
+But we can improve this plot.
 The ASVs have uninformative IDs, and the total number of reads is not particularly useful information.
 :::
 
@@ -226,7 +230,8 @@ miceBars$named %>% ggdraw()
 ```
 
 ::: notes
-We can also rename the unique taxa with a more informative name, according to their classification at, for example, Family level, and how common they are. Helpful, now we can see that most of the top ASVs are from the Porphyromonadaceae family.
+We can also rename the unique taxa with a more informative name, according to their classification at, for example, Family level, and how common they are.
+Helpful, now we can see that most of the top ASVs are from the Porphyromonadaceae family.
 :::
 
 ## Proportional bar plot - all ASVs {.smaller transition="fade"}
@@ -243,8 +248,8 @@ miceBars$unique %>% ggdraw()
 ```
 
 ::: notes
-But sadly we don't have enough distinct colours to label all the unique taxa, 
-we can show them like this. There's a lot.
+But sadly we don't have enough distinct colours to label all the unique taxa, we can show them like this.
+There's a lot.
 :::
 
 ## Aggregated bar plot - Families {.smaller transition="fade"}
@@ -390,12 +395,15 @@ Richness AND evenness matter.
 $H = -\sum_{i=1}^Np_i\ln p_i$
 
 ::: notes
-A better measure of ecosystem diversity will also consider the evenness of the ecosystem. 
-If an ecosystem is dominated by one taxon, with several other taxa present, but which only a few counts, that is intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa. You can kind of see this from the bars which are the same samples as before, just now ordered and labelled by increasing Shannon diveristy.
+A better measure of ecosystem diversity will also consider the evenness of the ecosystem.
+If an ecosystem is dominated by one taxon, with several other taxa present, but which only a few counts, that is intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa.
+You can kind of see this from the bars which are the same samples as before, just now ordered and labelled by increasing Shannon diveristy.
 
-Shannon index often is called H, p is proportion of the i'th taxon. 
+Shannon index often is called H, p is proportion of the i'th taxon.
 For each taxon, you multiply the proportional abundance by the natural log of the proportion.
-You can try it out for yourself to convince yourself you get larger (negative) values for higher proportions. The highest value you can acheive with for example 20 taxa, is if they each have a proportion of 5%. You change the sign of the result to a positive number, as this makes more sense: higher numbers means higher diversity.
+You can try it out for yourself to convince yourself you get larger (negative) values for higher proportions.
+The highest value you can acheive with for example 20 taxa, is if they each have a proportion of 5%.
+You change the sign of the result to a positive number, as this makes more sense: higher numbers means higher diversity.
 :::
 
 ## Diversity - Effective numbers
@@ -419,21 +427,21 @@ mice %>%
 $e^H = N$ if all taxa were equally abundant.
 
 ::: notes
-The value of the Shannon index itself has no intuitive meaning. 
+The value of the Shannon index itself has no intuitive meaning.
 You can compare them, but not so easily interpret any one number.
 
 The concept of "effective numbers" of taxa is useful here.
-If you take the exponent of the Shannon index, what you get is the number of taxa in an evenly abundant ecosystem with the same Shannon index. This will be the actual number of taxa (observed richness) if your original ecosystem was actually perfectly even. It will otherwise be less than the number of taxa actually in your ecosystem. 
+If you take the exponent of the Shannon index, what you get is the number of taxa in an evenly abundant ecosystem with the same Shannon index.
+This will be the actual number of taxa (observed richness) if your original ecosystem was actually perfectly even.
+It will otherwise be less than the number of taxa actually in your ecosystem.
 :::
 
 ## Your turn {transition="convex"}
 
-- Link to exercises guidance:
-<https://david-barnett.github.io/evomics-material/exercises/microViz-1-intro-diversity-exercises>
+-   Link to exercises guidance: <https://david-barnett.github.io/evomics-material/exercises/microViz-1-intro-diversity-exercises>
 
-- Try out exploring the mouse data, making bar charts, calculating alpha diversity and doing some simple stats
+-   Try out exploring the mouse data, making bar charts, calculating alpha diversity and doing some simple stats
 
-- Excellent resource for more diversity details:
-<https://www.davidzeleny.net/anadat-r/doku.php/en:div-ind>
+-   Excellent resource for more diversity details: <https://www.davidzeleny.net/anadat-r/doku.php/en:div-ind>
 
-- Next topic after dinner: Dissimilarity and Ordination
+-   Next topic after dinner: Dissimilarity and Ordination

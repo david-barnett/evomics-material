@@ -35,13 +35,16 @@ shao19 <- readRDS(here::here('data/shao19.rds'))
 
 ## From Diversity to Dissimilarity {transition="convex-in convex-out"}
 
-::: incremental 
+::: fragment 
 
 - **Alpha diversity**: 
     - Summarizing one sample
     - *"How diverse is this ecosystem?"*
 
 <br>
+
+:::
+::: fragment 
 
 - **Dissimilarity**: 
     - Comparing a pair of samples
@@ -157,6 +160,16 @@ shao3 %>% comp_barplot(
 :::
 ::::
 
+::: notes
+The first dissimilarity measure to discuss is the Binary Jaccard.
+You simply count the number of taxa that occur in both samples, and divide that by the total number of distinct taxa across both samples.
+That gives you a measure of similarity, as the more taxa shared, the more similar 2 ecosystems are.
+1 minus that shared proportion, gives you the binary Jaccard dissimilarity measure.
+I've calculated the binary jaccard distances at family level, using the simple code here. 
+You see we get a little pairwise distance matrix, here's the dissimilarity between X and Y, X and Z, and Y and Z. The diagonal is distance of each sample from itself, so 0 of course. 
+The maximum value is 1, where no taxa are shared between samples.
+:::
+
 ## Dissimilarity measures - quantitative {auto-animate=true}
 
 ::::: {.columns}
@@ -197,6 +210,17 @@ shao3 %>% comp_barplot(
 :::::
 
 ::: notes
+Okay, so Binary Jaccard ignores information about the relative abundance of each taxon.
+We would call that a "qualitative" or "unweighted" dissimilarity measure.
+Bray-Curtis is a popular "quantitative" or "abundance-weighted" ecological dissimilarity measure. 
+
+A is total readcounts of all taxa in sample 1, B is total readcounts for the other sample.
+W is harder to explain. For every taxon shared by both samples, you take the smaller number of counts, and add up those values for every taxon.
+
+In general I would prefer an abundance weighted dissimilarity measure, to an unweighted one, 
+as unweighted measures are overly sensitive to small differences relating to low abundance taxa.
+But it depends on your research question.
+
 https://www.davidzeleny.net/anadat-r/doku.php/en:similarity
 Has good details.
 
@@ -213,6 +237,17 @@ that leads to taxa from either one environment (sample) or the other, but not bo
 
 *Lozupone and Knight 2005*
 
+::: notes
+So there are also phylogenetic or phylogeny-aware distance measures.
+The most famous of these is the UniFrac distance. (which is short for unique fraction)
+Here a phylogenetic tree indicating the genetic similarity of a few microbial taxa are shown.
+The tips of the tree are bacterial sequences, and the circles, triangles or squares indicate in which sample that sequence was identified.
+You compare pairs of samples by seeing what fraction of the branch lengths within the tree is unique to (or leading to) one sample or the other, but not both.
+
+In effect the benefit of this type of distance measure, is that samples that containing mostly distinct but similar sequences (e.g. species from the same genus) are closer than samples containing distinct and unrelated sequences (e.g. species from different phyla), Bray-Curtis etc. ignores this information!
+:::
+
+
 ## Dissimilarity measures - phylogenetic {background-color="white" .smaller transition="fade-in convex-out"}
 
 - **Weighted UniFrac distance**: branch lengths are weighted by the relative abundance of sequences in each community (sample)
@@ -223,7 +258,11 @@ that leads to taxa from either one environment (sample) or the other, but not bo
 *Lozupone et al. 2007*
 
 ::: notes
-In example: Square sequences are weighted twice as much as circle sequences because there are twice as many total **circle** sequences in the dataset.
+There is also an abundance-weighted version of the unifrac distance.
+This just involves weighting the branches (effectively making them longer) by the relative abundance of sequences in the samples. 
+There is also a generalised version of UniFrac, invented by a different group, that allows you to balance the weighting between high and low abundance taxa. This works great in my experience.
+
+Note, In example: Square sequences are weighted twice as much as circle sequences because there are twice as many total **circle** sequences in the dataset.
 :::
 
 # Why quantify dissimilarity? {transition="convex"}
@@ -248,6 +287,10 @@ shaoSubset %>%
   .[1:12, 1:8]
 ```
 
+::: notes
+So this is our distance matrix, not the easiest thing to look at by eye.
+:::
+
 ## Ordination with PCoA {.smaller auto-animate=true}
 
 #### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
@@ -269,7 +312,14 @@ shaoSubset %>%
 ```
 
 ::: notes
-PCoA interpretation: - ordination method attempts to preserve the original pairwise distances between samples.
+Ordination refers to the process of ordering things (in our case: samples), so that similar things (samples) are closer to each other, and dissimilar things (samples) are further away.
+
+Principal Co-ordinates Analysis is one kind of ordination.
+
+Takes distance matrix and finds new dimensions (a co-ordinate system if you like).
+The new dimensions are created with the aim to preserve the original distances between samples, but to capture the majority of this distance information in the first few dimensions.
+We like this because it makes it easier to visualize the patterns in your data (in 2D or 3D).
+
 So closer samples have more similar ecosystems, more distant samples have more different ecosystems.
 :::
 
@@ -353,6 +403,13 @@ shaoSubset %>%
   )
 ```
 
+::: notes
+Why are ordination methods useful? Here is an example.
+Here I have coloured the samples by the mode of delivery, how the infant was born. 
+If we remember these were samples of the human infant gut microbiome.
+This plot gives us an indication that the overall bacterial ecosystem is often quite different in infants born by C-section, relative to those delivered vaginally.
+:::
+
 ## Ordination with PCoA - useful {.smaller auto-animate=true}
 
 #### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
@@ -378,6 +435,10 @@ shaoSubset %>%
   stat_ellipse(aes(color = birth_mode))
 ```
 
+::: notes
+You will often see these 95% confidence ellipses added for each group to aid the eye.
+But we can also statistically test this overall group difference!
+:::
 
 ## PERMANOVA {.smaller}
 
@@ -420,10 +481,18 @@ shaoSubset %>%
 :::
 ::::
 
+::: notes
+PERMANOVA is a Multivariate version of anova, analysis of variance, where
+the statistical significance of associations is assessed by permuting, randomly shuffling the data, 
+to see how often a group-difference at least this extreme occurs by chance.
+
+Link to great book chapter by anderson on PERMANOVA.
+https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841
+:::
 
 ## Ordination - interactive {.smaller transition="convex-in fade-out"}
 
-This ordination thing is nice, but I can't see the compositions directly...
+This ordination thing is nice, but I want to see the compositions directly too.
 
 ```{r, fig.width=5, fig.height=4.5}
 shaoSubset %>%
@@ -442,9 +511,18 @@ shaoSubset %>%
   stat_ellipse(aes(color = birth_mode))
 ```
 
+::: notes
+So maybe you are thinking...
+:::
+
 ## {transition="fade"}
 
 ![](images/20210429_ord_explore_x175.gif)
+
+::: notes
+Well during the exercises you get to play with an interactive application I created as part of the microViz package, you can see a gif here. It allows you to interactively create and style various ordination plots directly from your phyloseq object, and then you can select multiple samples 
+to examine their compositions on bar charts.
+:::
 
 # Filtering taxa {transition="convex"}
 
@@ -477,7 +555,7 @@ I'm sure one can think of many cases where rare taxa are biologically relevant, 
 
 **Two main concepts:**
 
--   Low **prevalence** - taxon only detected in a small number of samples in your dataset.
+-   Low **prevalence** - taxon only detected in a few samples in your dataset.
 -   Low **abundance** - relatively few reads assigned to that taxon (on average or in total)
 
 ::: fragment
@@ -501,8 +579,9 @@ shao19 %>%
 :::
 
 ::: notes
-Consider the impact of issues 1, 2, and 3.
-Let's say we are not interested in unique taxa that occur in fewer than 2% of samples, and they have to have at least 10,000 reads in total across all samples.
+Two concepts of rarity. Explain...
+
+So, let's say for now we are not interested in species that occur in fewer than 2% of samples, and they have to have at least 10,000 reads in total across all samples.
 Wow we lost a lot of taxa! Let's look at why.
 :::
 
@@ -554,8 +633,9 @@ p + ggrepel::geom_text_repel(
 ```
 
 ::: notes
-Let's label those points to check which taxa are the big time players.
+Here I've labelled those points to check which taxa are the big time players.
 Those taxa make sense for this dataset of mostly infant gut microbiome samples.
+This is a nice sanity check.
 :::
 
 ## Filtering - log transform
@@ -638,5 +718,13 @@ Depends on what analysis method you are filtering for!
 -   differential abundance testing = stringent filtering, prevalence \>5%, \>10%? (last topic!)
 :::
 
-# Your turn {transition="convex"}
+## Your turn {transition="convex"}
+
+-   Link to exercises guidance: <https://david-barnett.github.io/evomics-material/exercises/microViz-2-dissimilarity-exercises>
+
+-   Try out exploring the birth cohort data, filtering taxa, making PCoA plots, and using PERMANOVA
+
+-   Excellent book chapter by Anderson on PERMANOVA: <https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841>
+
+-   Last topics after break 8:15 to 8:45  - transformations, PCA, and differential abundance testing
 
