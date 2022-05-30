@@ -10,6 +10,7 @@ format:
     pause: false
     fig-responsive: false
     history: false
+    multiplex: true
 editor: source
 ---
 
@@ -71,8 +72,9 @@ But during the exercises try exploring the other datasets too, if you want more 
 
 ## Euclidean distances
 
-::: columns
+:::: columns
 ::: {.column width="40%"}
+
 ```{r, fig.height=3, fig.width=3}
 pq <- data.frame(taxonA = c(1, 4), taxonB = c(6, 2), row.names = c("p", "q"))
 pq %>%
@@ -92,11 +94,17 @@ pq %>%
 :::
 
 ::: {.column width="60%"}
+
 Pythagoras: $c = \sqrt{a^2 + b^2}$
+
+::: fragment 
+
+$$d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }$$
 
 Euclidean distance between samples p and q
 
-$$d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }$$
+:::
+::: fragment
 
 ```{r}
 #| echo: true
@@ -104,10 +112,13 @@ dist(pq, method = "euclidean")
 ```
 :::
 :::
+::::
 
 ::: notes
--   What are Euclidean distances? 2 dimensional example
--   Show pythagoras $c = \sqrt{a^2 + b^2}$ and explain generalisation to more dimensions, where each dimension is the counts of one taxon.
+-   What are Euclidean distances? Here is a simple 2-dimensional example - two taxa.
+-   2 samples: Pythagoras you probably remember from school $c = \sqrt{a^2 + b^2}$ 
+Distance in one dimension, square it, distance in another dimension, square it, add them together, and square root of the result.
+-   Euclidean distance is essentially just a generalisation to more dimensions, where each dimension is the counts of one taxon.
 -   Test it, indeed you get 5
 :::
 
@@ -132,8 +143,10 @@ shao4 %>%
 The PCoA looks weird!
 
 ::: notes
-Sensitive to sparsity (double-zero problem): - filter rare taxa.
-Excessive emphasis on high-abundance taxa: - transform features first.
+We shouldn't just use Euclidean distances on the raw data, why?
+
+Sensitive to sparsity (double-zero problem). 
+Excessive emphasis on high-abundance taxa.
 The PCoA looks weird! Most samples bunched in the middle with spindly projections..
 :::
 

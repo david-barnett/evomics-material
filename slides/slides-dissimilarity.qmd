@@ -10,6 +10,7 @@ format:
     pause: false
     fig-responsive: false
     history: false
+    multiplex: true
 editor: source
 ---
 
@@ -121,7 +122,6 @@ sample_names(shao3) <- c("X", "Y", "Z")
 
 :::: {.columns}
 
-
 ::: {.column width="70%"}
 
 ```r
@@ -148,9 +148,9 @@ shao3j %>% dist_get() %>% print(diag = TRUE, digits = 2)
 
 ```{r, fig.width=2.5, fig.height=4}
 shao3 %>% comp_barplot(
-  tax_level = 'genus', n_taxa = 13, merge_other = FALSE, 
+  tax_level = "genus", n_taxa = 13, merge_other = FALSE,
   bar_width = 0.7, sample_order = "asis"
-) + 
+) +
   theme(legend.position = "none", axis.text.x = element_text(size = 16))
 ```
 
@@ -187,9 +187,9 @@ shao3_bray %>% dist_get() %>% print(diag = TRUE, digits = 2)
 
 ```{r, fig.width=2.5, fig.height=4}
 shao3 %>% comp_barplot(
-  tax_level = 'genus', n_taxa = 13, merge_other = FALSE, 
+  tax_level = "genus", n_taxa = 13, merge_other = FALSE,
   bar_width = 0.7, sample_order = "asis"
-) + 
+) +
   theme(legend.position = "none", axis.text.x = element_text(size = 16))
 ```
 
@@ -215,7 +215,7 @@ that leads to taxa from either one environment (sample) or the other, but not bo
 
 ## Dissimilarity measures - phylogenetic {background-color="white" .smaller transition="fade-in convex-out"}
 
-- **Weighted UniFrac distance**: branch lengths are weighted by the relative abundance of sequences each community (sample)
+- **Weighted UniFrac distance**: branch lengths are weighted by the relative abundance of sequences in each community (sample)
 - **Generalized UniFrac** (not shown): partial abundance weighting - *Chen et al. 2012*
 
 ![](images/lozupone-weighted-unifrac.jpeg)
@@ -240,11 +240,11 @@ In example: Square sequences are weighted twice as much as circle sequences beca
 From distance matrix to new dimensions 
 
 ```{r}
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  dist_get() %>% 
-  as.matrix() %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  dist_get() %>%
+  as.matrix() %>%
   .[1:12, 1:8]
 ```
 
@@ -257,10 +257,10 @@ From distance matrix to new dimensions
 ```{r, fig.width=5, fig.height=4.5}
 #| output-location: column
 #| echo: true
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(
     alpha = 0.6, size = 3
   ) +
@@ -282,20 +282,20 @@ From distance matrix to new dimensions
 ```{r, fig.width=5, fig.height=4.5}
 #| output-location: column
 #| echo: true
-shaoSubset %>% 
+shaoSubset %>%
   ps_calc_dominant(
     rank = "genus", n_max = 2, var = "Top_Genus", threshold = 0.2
-  ) %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+  ) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(
     alpha = 0.6, size = 3, color = "Top_Genus"
   ) +
-  theme_classic(12) + 
+  theme_classic(12) +
   coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
   theme(
-    legend.position = c(0.175, 0.8), 
+    legend.position = c(0.175, 0.8),
     legend.background = element_rect(colour = "black")
   )
 ```
@@ -309,17 +309,17 @@ From distance matrix to new dimensions
 ```{r, fig.width=5, fig.height=4.5}
 #| output-location: column
 #| echo: true
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(
     alpha = 0.6, size = 3, color = "birth_mode"
   ) +
-  theme_classic(12) + 
+  theme_classic(12) +
   coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
   theme(
-    legend.position = c(0.175, 0.8), 
+    legend.position = c(0.175, 0.8),
     legend.background = element_rect(colour = "black")
   )
 ```
@@ -333,17 +333,17 @@ From distance matrix to new dimensions
 ```{r, fig.width=5, fig.height=4.5}
 #| output-location: column
 #| echo: true
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(
     alpha = 0.6, size = 3, color = "birth_mode"
   ) +
-  theme_classic(12) + 
+  theme_classic(12) +
   coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
   theme(
-    legend.position = c(0.175, 0.8), 
+    legend.position = c(0.175, 0.8),
     legend.background = element_rect(colour = "black")
   ) +
   stat_ellipse(aes(color = birth_mode))
@@ -359,17 +359,17 @@ shaoSubset %>%
 ::: {.column width="45%"}
 
 ```{r, fig.width=5, fig.height=4.5}
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(
     alpha = 0.6, size = 3, color = "birth_mode"
   ) +
-  theme_classic(12) + 
+  theme_classic(12) +
   coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
   theme(
-    legend.position = c(0.175, 0.8), 
+    legend.position = c(0.175, 0.8),
     legend.background = element_rect(colour = "black")
   ) +
   stat_ellipse(aes(color = birth_mode))
@@ -380,11 +380,11 @@ shaoSubset %>%
 
 ```{r}
 #| echo: true
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  dist_permanova(variables = "birth_mode") %>% 
-  perm_get()  %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  dist_permanova(variables = "birth_mode") %>%
+  perm_get() %>%
   broom::tidy()
 ```
 
@@ -398,12 +398,12 @@ shaoSubset %>%
 - Only use or look at the first few = "dimensionality reduction"
 
 ```{r, fig.height=3, fig.width=6}
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_get() %>%
-  plot_scree() + 
+  plot_scree() +
   geom_col(data = ~ filter(., axis %in% c("MDS1", "MDS2")), fill = "red") +
   labs(y = "Variation explained", x = NULL) +
   theme(panel.background = element_blank())
@@ -414,17 +414,17 @@ shaoSubset %>%
 This ordination thing is nice, but I can't see the compositions directly...
 
 ```{r, fig.width=5, fig.height=4.5}
-shaoSubset %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(
     alpha = 0.6, size = 3, color = "birth_mode"
   ) +
-  theme_classic(12) + 
+  theme_classic(12) +
   coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
   theme(
-    legend.position = c(0.175, 0.8), 
+    legend.position = c(0.175, 0.8),
     legend.background = element_rect(colour = "black")
   ) +
   stat_ellipse(aes(color = birth_mode))
@@ -434,7 +434,197 @@ shaoSubset %>%
 
 ![](images/20210429_ord_explore_x175.gif)
 
-## Filtering taxa
+# Filtering taxa {transition="convex"}
 
-To be completed
+But before you get to that fun stuff, we need to talk about filtering!
+
+## Rare taxa - problems {transition="convex"}
+
+**Rare taxa might be:**
+
+1.  Sequencing errors
+2.  Statistically problematic
+3.  Biologically irrelevant
+
+::: notes
+1.  Rare taxa might be erroneous: sequencing errors (DADA2 isn't perfect), chimeric sequences...
+2.  Statistical challenges:
+    -   There are often A LOT of different rare taxa
+        -   Sparsity, lots of zeros
+        -   Low precision in very low abundance taxa (integer counts)
+        -   Multiple comparisons (we'll get to that later)
+    -   Having many many taxa in your dataset can really slow down some analyses!
+3.  Biological (ir)relevance:
+    -   For many (most?) microbiome research questions, rare taxa are less likely to be relevant
+    -   For common host health problems and the human/animal microbiome, if a taxon only occurs in every 100th person, it is less likely to be relevant to risk common disease outcomes (?)
+
+I'm sure one can think of many cases where rare taxa are biologically relevant, but problems 1 and 2 are still there.
+:::
+
+## Rare taxa - what is rare? {transition="convex"}
+
+**Two main concepts:**
+
+-   Low **prevalence** - taxon only detected in a small number of samples in your dataset.
+-   Low **abundance** - relatively few reads assigned to that taxon (on average or in total)
+
+::: fragment
+
+```{r}
+#| echo: true
+ntaxa(shao19)
+```
+
+:::
+
+::: fragment
+
+```{r}
+#| echo: true
+shao19 %>% 
+  tax_filter(min_prevalence = 2 / 100, min_total_abundance = 10000) %>% 
+  ntaxa()
+```
+
+:::
+
+::: notes
+Consider the impact of issues 1, 2, and 3.
+Let's say we are not interested in unique taxa that occur in fewer than 2% of samples, and they have to have at least 10,000 reads in total across all samples.
+Wow we lost a lot of taxa! Let's look at why.
+:::
+
+```{r}
+# make table of summary statistics for the unique taxa in shao19
+shaoTaxaStats <- tibble(
+  taxon = taxa_names(shao19),
+  prevalence = microbiome::prevalence(shao19),
+  total_abundance = taxa_sums(shao19)
+)
+```
+
+```{r}
+p <- shaoTaxaStats %>%
+  ggplot(aes(total_abundance, prevalence)) +
+  geom_point(alpha = 0.5) +
+  geom_rug(alpha = 0.1) +
+  scale_x_continuous(
+    labels = scales::label_number(), name = "Total Abundance"
+  ) +
+  scale_y_continuous(
+    labels = scales::label_percent(), breaks = scales::breaks_pretty(n = 9),
+    name = "Prevalence (%)",
+    sec.axis = sec_axis(
+      trans = ~ . * nsamples(shao19), breaks = scales::breaks_pretty(n = 9),
+      name = "Prevalence (N samples)"
+    )
+  ) +
+  theme_bw()
+```
+
+## Filtering - prev/abund plot {transition="convex-in fade-out"}
+
+```{r}
+p
+```
+
+::: notes
+So most taxa have a low prevalence, and a handful have way more reads than most.
+:::
+
+## Filtering - labelled
+
+```{r}
+p + ggrepel::geom_text_repel(
+  data = function(df) filter(df, total_abundance > 1e9 | prevalence > 0.6),
+  mapping = aes(label = taxon), size = 2.5, min.segment.length = 0, force = 15
+)
+```
+
+::: notes
+Let's label those points to check which taxa are the big time players.
+Those taxa make sense for this dataset of mostly infant gut microbiome samples.
+:::
+
+## Filtering - log transform
+
+```{r}
+shaoTaxaStats %>%
+  ggplot(aes(x = total_abundance, y = prevalence)) +
+  geom_vline(xintercept = 10000, color = "red", linetype = "dashed") +
+  geom_hline(yintercept = 2 / 100, color = "red", linetype = "dashed") +
+  geom_point(alpha = 0.5) +
+  geom_rug(alpha = 0.1) +
+  scale_x_log10(labels = scales::label_number(), name = "Total Abundance") +
+  scale_y_log10(
+    labels = scales::label_percent(), breaks = scales::breaks_log(n = 9),
+    name = "Prevalence (%)",
+    sec.axis = sec_axis(
+      trans = ~ . * nsamples(shao19), breaks = scales::breaks_log(n = 9),
+      name = "Prevalence (N samples)"
+    )
+  ) +
+  theme_bw()
+```
+
+::: notes
+Now let's zoom in on the less abundant taxa by log-transforming the axes.
+(We'll talk more about log transforming in the next slides/exercises).
+
+We've also added lines indicating the thresholds of 2% prevalence and 10000 reads abundance.
+Everything in the top-right box gets kept, otherwise, chuck it!
+:::
+
+
+## Filtering - phylum facets {transition="fade-in convex-out"}
+
+```{r, fig.height = 5, fig.width=8}
+# don't worry about this code if it's confusing, just focus on the plot output
+shao19 %>%
+  tax_table() %>%
+  as.data.frame() %>%
+  as_tibble(rownames = "taxon") %>%
+  left_join(shaoTaxaStats, by = "taxon") %>%
+  add_count(phylum, name = "phylum_count", sort = TRUE) %>%
+  mutate(phylum = factor(phylum, levels = unique(phylum))) %>% # to fix facet order
+  mutate(phylum = forcats::fct_lump_n(phylum, n = 5)) %>%
+  mutate(phylum = forcats::fct_explicit_na(phylum, na_level = "Other")) %>%
+  ggplot(aes(total_abundance, prevalence)) +
+  geom_vline(xintercept = 10000, color = "red", linetype = "dashed") +
+  geom_hline(yintercept = 2 / 100, color = "red", linetype = "dashed") +
+  geom_point(alpha = 0.5, size = 1) +
+  geom_rug(alpha = 0.2) +
+  scale_x_log10(
+    labels = scales::label_log(), breaks = scales::breaks_log(n = 5),
+    name = "Total Abundance"
+  ) +
+  scale_y_log10(
+    labels = scales::label_percent(), breaks = scales::breaks_log(n = 9),
+    name = "Prevalence (%)",
+    sec.axis = sec_axis(
+      trans = ~ . * nsamples(shao19), breaks = scales::breaks_log(n = 9),
+      name = "Prevalence (N samples)"
+    )
+  ) +
+  facet_wrap("phylum") +
+  theme_bw(10)
+```
+
+::: notes
+We can break this down by phylum if we add the taxonomic table information.
+:::
+
+## Filtering - thresholds? {transition="convex"}
+
+**How to pick a threshold?**
+
+Depends on what analysis method you are filtering for!
+
+::: incremental
+-   alpha diversity = DO NOT FILTER
+-   beta diversity = relevance of threshold depends on your distance measure (next topic!)
+-   differential abundance testing = stringent filtering, prevalence \>5%, \>10%? (last topic!)
+:::
+
+# Your turn {transition="convex"}
 

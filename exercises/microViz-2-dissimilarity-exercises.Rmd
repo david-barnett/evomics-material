@@ -7,9 +7,9 @@ output:
   html_document:
     theme: paper
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float: 
-      collapsed: false
+      collapsed: true
 ---
 
 # Setup
@@ -98,15 +98,12 @@ e.g. for this type of sequencing Illumina suggests you should expect at least a 
 If you are interested, go back and recreate this plot with the 16S sequencing dataset `mice`.
 
 ```{r, fig.height=3, fig.width=6}
-mice %>% 
-  ps_mutate(reads = sample_sums(.env$mice)) %>% 
-  samdat_tbl() %>% 
-  ggplot(aes(x = reads)) + 
-  geom_freqpoly(bins = 30) +
-  geom_rug(alpha = 0.5) +
-  scale_x_log10(labels = scales::label_number()) +
-  labs(x = 'Number of classified reads', y = NULL) +
-  theme_bw()
+# mice %>%
+#   ps_mutate(reads = sample_sums(mice)) %>%
+#   samdat_tbl() %>%
+#   ggplot(aes(x = reads)) +
+#   geom_freqpoly(bins = 30) +
+#   ... 
 ```
 
 ### Taxon filtering
@@ -125,17 +122,15 @@ We probably want to filter out **rare** taxa, before performing some kinds of an
 
 **More elaboration for presentation/discussion**
 
-1.  Rare taxa might be erroneous: sequencing errors, chimeric sequences...
+1.  Rare taxa might be erroneous: sequencing errors (DADA2 isn't perfect), chimeric sequences...
 
 2.  Statistical challenges:
 
     -   There are often A LOT of different rare taxa
         -   Sparsity, lots of zeros
-        -   Noise, more measurement error in very low abundance taxa
+        -   Low precision in very low abundance taxa (integer counts)
         -   Multiple comparisons (we'll get to that later)
     -   Having many many taxa in your dataset can really slow down some analyses!
-
-    TODO: COMPLETE
 
 3.  Biological (ir)relevance:
 
@@ -178,11 +173,13 @@ shaoTaxaStats <- tibble(
 ```
 
 ```{r}
-p <- shaoTaxaStats %>% 
-  ggplot(aes(total_abundance, prevalence)) + 
+p <- shaoTaxaStats %>%
+  ggplot(aes(total_abundance, prevalence)) +
   geom_point(alpha = 0.5) +
   geom_rug(alpha = 0.1) +
-  scale_x_continuous(labels = scales::label_number(), name = 'Total Abundance') + 
+  scale_x_continuous(
+    labels = scales::label_number(), name = "Total Abundance"
+  ) +
   scale_y_continuous(
     labels = scales::label_percent(), breaks = scales::breaks_pretty(n = 9),
     name = "Prevalence (%)",
@@ -197,7 +194,7 @@ p
 
 So most taxa have a low prevalence, and handful have way more reads than most.
 
-Let's quickly label those plots to check which taxa are the big time players.
+Let's label those points to check which taxa are the big time players.
 
 ```{r}
 p + ggrepel::geom_text_repel(
@@ -206,19 +203,19 @@ p + ggrepel::geom_text_repel(
 )
 ```
 
-That makes sense for this dataset of mostly infant gut microbiome samples.
+Those taxa make sense for this dataset of mostly infant gut microbiome samples.
 
 Now let's zoom in on the less abundant taxa by log-transforming the axes.
 We'll also add lines indicating the thresholds of 2% prevalence and 10000 reads abundance.
 
 ```{r}
-shaoTaxaStats %>% 
-  ggplot(aes(total_abundance, prevalence)) + 
-  geom_vline(xintercept = 10000, color = 'red', linetype = 'dotted') +
-  geom_hline(yintercept = 2/100, color = 'red', linetype = 'dotted') +
+shaoTaxaStats %>%
+  ggplot(aes(x = total_abundance, y = prevalence)) +
+  geom_vline(xintercept = 10000, color = "red", linetype = "dotted") +
+  geom_hline(yintercept = 2 / 100, color = "red", linetype = "dotted") +
   geom_point(alpha = 0.5) +
   geom_rug(alpha = 0.1) +
-  scale_x_log10(labels = scales::label_number(), name = 'Total Abundance') + 
+  scale_x_log10(labels = scales::label_number(), name = "Total Abundance") +
   scale_y_log10(
     labels = scales::label_percent(), breaks = scales::breaks_log(n = 9),
     name = "Prevalence (%)",
@@ -234,23 +231,24 @@ We can break this down by phylum if we add the taxonomic table information.
 
 ```{r, fig.height = 5, fig.width=8}
 # don't worry about this code if it's confusing, just focus on the plot output
-shao19 %>% 
-  tax_table() %>% 
-  as.data.frame() %>% 
-  as_tibble(rownames = 'taxon') %>% 
-  left_join(shaoTaxaStats, by = "taxon") %>% 
-  add_count(phylum, name = 'phylum_count', sort = TRUE) %>% 
+shao19 %>%
+  tax_table() %>%
+  as.data.frame() %>%
+  as_tibble(rownames = "taxon") %>%
+  left_join(shaoTaxaStats, by = "taxon") %>%
+  add_count(phylum, name = "phylum_count", sort = TRUE) %>%
   mutate(phylum = factor(phylum, levels = unique(phylum))) %>% # to fix facet order
-  mutate(phylum = forcats::fct_lump_n(phylum, n = 5) %>% forcats::fct_explicit_na('Other')) %>% 
+  mutate(phylum = forcats::fct_lump_n(phylum, n = 5)) %>%
+  mutate(phylum = forcats::fct_explicit_na(phylum, na_level = "Other")) %>%
   ggplot(aes(total_abundance, prevalence)) +
-  geom_vline(xintercept = 10000, color = 'red', linetype = 'dotted') +
-  geom_hline(yintercept = 2/100, color = 'red', linetype = 'dotted') +
+  geom_vline(xintercept = 10000, color = "red", linetype = "dotted") +
+  geom_hline(yintercept = 2 / 100, color = "red", linetype = "dotted") +
   geom_point(alpha = 0.5, size = 1) +
   geom_rug(alpha = 0.2) +
   scale_x_log10(
     labels = scales::label_log(), breaks = scales::breaks_log(n = 5),
-    name = 'Total Abundance'
-  ) + 
+    name = "Total Abundance"
+  ) +
   scale_y_log10(
     labels = scales::label_percent(), breaks = scales::breaks_log(n = 9),
     name = "Prevalence (%)",
@@ -259,7 +257,7 @@ shao19 %>%
       name = "Prevalence (N samples)"
     )
   ) +
-  facet_wrap('phylum') + 
+  facet_wrap("phylum") +
   theme_bw(10)
 ```
 
@@ -273,55 +271,61 @@ Depends on what analysis method you are filtering for!
 
 ## Dissimilarity measures
 
-TODO: Slides on different dissimilarity measures.
-
 What are we doing?
 Calculating the dissimilarity of two samples' compositions.
+We talked about these dissimilarity measures in the lecture.
 
-[Visualize distance heatmaps?]
-
--   Binary Jaccard
--   Bray-Curtis
+-   Binary Jaccard - presence-absence only
+-   Bray-Curtis - abundance weighted
 -   UniFrac distances (unweighted, weighted, generalised)
 
 To simplify and speed up the analyses, we're going to take a smaller part of the dataset.
 We'll only look at the 300 infant fecal samples from 4 days of age.
 
 ```{r}
-shao4 <- shao19 %>% ps_filter(family_role == 'child', infant_age == 4) 
+shao4 <- shao19 %>% ps_filter(family_role == "child", infant_age == 4)
 ```
 
 We're going to filter out rare taxa quite strictly, for similar reasons.
 But we won't overwrite our smaller dataset: we'll do the filtering per analysis.
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100) %>% 
-  tax_agg(rank = 'genus') %>% 
-  tax_transform('binary') %>% # converts counts to absence/presence: 0/1
-  dist_calc(dist = 'jaccard') 
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100) %>%
+  tax_agg(rank = "genus") %>%
+  tax_transform("binary") %>% # converts counts to absence/presence: 0/1
+  dist_calc(dist = "jaccard")
 ```
 
-Talk about the output we see here.
-Then look at the distance matrix.
+So we get our pairwise dissimilarities, in a distance matrix 
+attached as an extra part on the original phyloseq object, as part of a container object 
+(a "ps_extra" class object created by microViz, which also stores info about the aggregation and transformations you performed)
 
 ```{r}
-distances <- shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_agg(rank = 'genus') %>% 
-  tax_transform('binary') %>%
-  dist_calc(dist = 'jaccard') %>% 
-  dist_get() 
+distances <- shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  tax_transform("binary") %>%
+  dist_calc(dist = "jaccard") %>%
+  dist_get()
+```
 
+You can extract the dissimilarities or distances with dist_get. 
+
+```{r}
 as.matrix(distances)[1:5, 1:5]
+```
 
+The Binary Jaccard dissimilarities range between zero (identical) and one (no shared genera).
+
+```{r}
 range(distances)
 ```
 
 ## Ordination
 
-What do we do with these distances or dissimilarities?
-We make an ordination.
+What can we do with these distances or dissimilarities?
+We can make an ordination.
 
 Ordination refers to the process of ordering things (in our case: samples), so that similar things (samples) are closer to each other, and dissimilar things (samples) are further away.
 
@@ -329,40 +333,43 @@ Ordination refers to the process of ordering things (in our case: samples), so t
 
 Principal Co-ordinates Analysis is one kind of ordination.
 
-Takes distance matrix and finds new dimensions (a co-ordinate system if you like)
+Takes distance matrix and finds new dimensions (a co-ordinate system if you like).
+The new dimensions are created with the aim to preserve the original distances between samples, but to capture the majority of this distance information in the first few dimensions.
+We like this because it makes it easier to visualize the patterns in your data (in 2D or 3D).
 
-More details this works
+TODO link to gusta me.
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(alpha = 0.6, size = 2) +
   theme_classic(12) +
   coord_fixed(0.7)
 ```
 
-To get a little insight into what the happened here, we can colour each sample according to its dominant (most abundant) genus.
+To get a little insight into what has happened here, we can colour each sample according to its dominant (most abundant) genus.
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  ps_calc_dominant(rank = 'genus', none = "Mixed", other = "Other") %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  ps_calc_dominant(rank = "genus", none = "Mixed", other = "Other") %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
   ord_plot(color = "dominant_genus", alpha = 0.6, size = 2) +
-  scale_color_brewer(name = "Dominant Genus", palette = 'Dark2') +
+  scale_color_brewer(name = "Dominant Genus", palette = "Dark2") +
   theme_classic(12) +
   coord_fixed(0.7)
 ```
 
+
 ### Interactive ordination!
 
 `microViz` provides a Shiny app `ord_explore` to interactively create and explore PCoA plots and other ordinations.
-See the code below to get started.
+See the code below to get started. But read the instructions first.
 
 **Here are a few things to try:**
 
@@ -379,6 +386,7 @@ See the code below to get started.
     -   Practice using `ps_filter` etc.
     -   e.g. plot the data of the mothers' gut microbiomes!
     -   compute one or more alpha diversity measures
+
 
 **Beware:**
 
@@ -397,11 +405,11 @@ See the code below to get started.
 
 ``` r
 # fire up the shiny app
-# run these lines in your console
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+# run these lines in your console (don't keep in script/notebook)
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
   # calculate new sample variables with dominant taxon (optional)
-  ps_calc_dominant(rank = 'genus', none = "Mixed", other = "Other") %>% 
+  ps_calc_dominant(rank = "genus", none = "Mixed", other = "Other") %>%
   # launch a Shiny app in your web browser!
   ord_explore()
 ```
@@ -409,13 +417,13 @@ shao4 %>%
 ``` r
 # different options
 # run this line in your console
-shao19 %>% 
-  ps_filter(family_role == 'mother') %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
+shao19 %>%
+  ps_filter(family_role == "mother") %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
   # calculate a few sample variables for interest (optional)
-  ps_calc_dominant(rank = 'genus', none = "Mixed", other = "Other") %>% 
-  ps_calc_diversity(rank = 'genus', index = 'shannon') %>% 
-  ps_calc_richness(rank = 'genus', index = 'observed') %>% 
+  ps_calc_dominant(rank = "genus", none = "Mixed", other = "Other") %>%
+  ps_calc_diversity(rank = "genus", index = "shannon") %>%
+  ps_calc_richness(rank = "genus", index = "observed") %>%
   # launch a Shiny app in your web browser!
   ord_explore()
 ```
@@ -433,24 +441,24 @@ Permutational multivariate analysis of variance.
 **TLDR:** Are those groups on the PCoA actually different??
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  ord_calc(method = 'PCoA') %>% 
-  ord_plot(alpha = 0.6, size = 2, color = 'birth_mode') +
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
+  ord_plot(alpha = 0.6, size = 2, color = "birth_mode") +
   theme_classic(12) +
   coord_fixed(0.7) +
   stat_ellipse(aes(color = birth_mode)) +
-  scale_color_brewer(palette = 'Set1')
+  scale_color_brewer(palette = "Set1")
 ```
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
-  dist_permanova(variables = 'birth_mode', n_perms = 99, seed = 123) %>% 
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  dist_permanova(variables = "birth_mode", n_perms = 99, seed = 123) %>%
   perm_get()
 # Use more permutations for a more reliable p.value in your real work (slower)
 # Set a random seed number for reproducibility of this stochastic method
@@ -464,18 +472,18 @@ You should also report that you used Bray-Curtis dissimilarities, calculated on 
 
 It's probably a good idea to decide on a couple of appropriate distance measures up front for these tests, and report both (at least in supplementary material), as the choice of distance measure can affect results and conclusions!
 
-You can also adjust for covariates in PERMANOVA, and often should.
+You can also adjust for covariates in PERMANOVA, and often should, depending on your study design.
 Let's fit a more complex model, adjusting for infant sex, birth weight, and the total number of assigned reads.
 
 ```{r}
-shao4 %>% 
-  tax_filter(min_prevalence = 2.5/100, verbose = FALSE) %>% 
-  tax_agg(rank = 'genus') %>% 
-  dist_calc(dist = 'bray') %>% 
+shao4 %>%
+  tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
   dist_permanova(
-    variables = c('birth_mode', 'sex', 'birth_weight', 'number_reads'),
+    variables = c("birth_mode", "sex", "birth_weight", "number_reads"),
     n_perms = 99, seed = 111
-  ) %>% 
+  ) %>%
   perm_get()
 # Use more permutations for a more reliable p.value in your real work (slower)
 # Set a random seed number for reproducibility of this stochastic method

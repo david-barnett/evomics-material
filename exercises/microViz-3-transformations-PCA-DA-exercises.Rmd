@@ -7,9 +7,9 @@ output:
   html_document:
     theme: paper
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float: 
-      collapsed: false
+      collapsed: true
 ---
 
 # Setup
@@ -41,7 +41,14 @@ shao4 <- shao19 %>% ps_filter(family_role == "child", infant_age == 4)
 What about Euclidean distances?
 What are those?
 
--   Show pythagoras $c = \sqrt{a^2 + b^2}$ and explain generalisation to more dimensions, where each dimension is the counts of one taxon.
+Euclidean distances are essentially a generalization of pythagoras' theorem to more dimensions.
+In our data every taxon is a feature, a dimension, on which we calculate Euclidean distances.  
+
+- Pythagoras: $c = \sqrt{a^2 + b^2}$ 
+
+- Euclidean distance: 
+
+$$d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }$$
 
 **Issues**
 
@@ -98,6 +105,8 @@ shao4_sorted %>%
   )
 ```
 
+We can add the proportions on this small subset of data as numbers. 
+
 ```{r, fig.height=3, fig.width=6}
 shao4_sorted %>%
   tax_transform(trans = "compositional", rank = "genus") %>%
@@ -136,13 +145,13 @@ shao4_sorted %>%
   )
 ```
 
-Log-transformation, zero replacement summary (keep it simple and record your approach).
+In general, for zero replacement, keep it simple and **record your approach**.
 
-### Centered log ratio transformation:
+### Centered Log Ratio transformation:
 
-Compositionality - centered-log-ratio transformation
+Compositionality problem is improved by the centered-log-ratio transformation. 
 
-The centered log-ratio (clr) transformation uses the geometric mean of the sample vector as the reference
+The centered log-ratio (clr) transformation uses the geometric mean of the sample vector as the reference. 
 
 ```{r, fig.height=3, fig.width=6}
 shao4_sorted %>%
@@ -215,7 +224,8 @@ shao4 %>%
   ord_calc(method = "PCoA") %>%
   ord_plot(alpha = 0.6, size = 2, color = "birth_mode") +
   theme_classic(12) +
-  coord_fixed(0.7)
+  coord_fixed(0.7) +
+  scale_y_reverse()
 ```
 
 ```{r}

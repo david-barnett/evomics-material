@@ -472,8 +472,11 @@ tax_table()   Taxonomy Table:    [ 36349 taxa by 6 taxonomic ranks ]</code></pre
 </div>
 </div><div class="column" style="width:60%;">
 <p>Pythagoras: <span class="math inline">\(c = \sqrt{a^2 + b^2}\)</span></p>
-<p>Euclidean distance between samples p and q</p>
+<div class="fragment">
 <p><span class="math display">\[d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }\]</span></p>
+<p>Euclidean distance between samples p and q</p>
+</div>
+<div class="fragment">
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">dist</span>(pq, <span class="at">method =</span> <span class="st">"euclidean"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -483,10 +486,12 @@ q 5</code></pre>
 </div>
 </div>
 </div>
+</div>
 <aside class="notes">
 <ul>
-<li>What are Euclidean distances? 2 dimensional example</li>
-<li>Show pythagoras <span class="math inline">\(c = \sqrt{a^2 + b^2}\)</span> and explain generalisation to more dimensions, where each dimension is the counts of one taxon.</li>
+<li>What are Euclidean distances? Here is a simple 2-dimensional example - two taxa.</li>
+<li>2 samples: Pythagoras you probably remember from school <span class="math inline">\(c = \sqrt{a^2 + b^2}\)</span> Distance in one dimension, square it, distance in another dimension, square it, add them together, and square root of the result.</li>
+<li>Euclidean distance is essentially just a generalisation to more dimensions, where each dimension is the counts of one taxon.</li>
 <li>Test it, indeed you get 5</li>
 </ul>
 <style type="text/css">
@@ -510,7 +515,8 @@ q 5</code></pre>
 
 <img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-8-1.png" width="720" class="r-stretch"><p>The PCoA looks weird!</p>
 <aside class="notes">
-<p>Sensitive to sparsity (double-zero problem): - filter rare taxa. Excessive emphasis on high-abundance taxa: - transform features first. The PCoA looks weird! Most samples bunched in the middle with spindly projections..</p>
+<p>We shouldn’t just use Euclidean distances on the raw data, why?</p>
+<p>Sensitive to sparsity (double-zero problem). Excessive emphasis on high-abundance taxa. The PCoA looks weird! Most samples bunched in the middle with spindly projections..</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -916,6 +922,8 @@ q 5</code></pre>
   <script src="slides-transform-PCA-DA_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
   <script src="slides-transform-PCA-DA_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
   <script src="slides-transform-PCA-DA_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="slides-transform-PCA-DA_files/libs/revealjs/plugin/multiplex/socket.io.js"></script>
+  <script src="slides-transform-PCA-DA_files/libs/revealjs/plugin/multiplex/multiplex.js"></script>
   <script src="slides-transform-PCA-DA_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
@@ -938,6 +946,7 @@ q 5</code></pre>
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
 'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'multiplex': {"secret":null,"id":"bb2257488ffbe172","url":"https://reveal-multiplex.glitch.me/"},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -1111,7 +1120,7 @@ q 5</code></pre>
         plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
 
           RevealMath,
-          RevealNotes,
+          
           RevealSearch,
           RevealZoom
         ]
