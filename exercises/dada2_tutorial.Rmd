@@ -8,9 +8,9 @@ output:
   html_document:
     theme: paper
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float: 
-      collapsed: false
+      collapsed: true
 ---
 
 \*Adapted from Ben C. Callahan [benjjneb](https://github.com/benjjneb).
@@ -103,7 +103,7 @@ filesR_filt <- file.path(dataPath, "filtered", paste0(sampleNames, "_R_filt.fast
 
 Pick values from the plots `p_qual_fwd` and `p_qual_rev` and set the truncLen argument like this `truncLen = c(fwd, rev)`
 
-So if you wanted to remove 10 based from fwd and 20 bases from rev: `truncLen = c(240, 230)`
+So if you wanted to remove 10 bases from fwd and 20 bases from rev: `truncLen = c(240, 230)`
 
 The example below is `c(240, 170)` but feel free to play with this parameter
 
@@ -140,7 +140,7 @@ filterStats %>%
 
 ```{r}
 # What other data can we extract from this table?
-# Just some examples of how to calculate quick table statistics
+# Just some examples of how to calculate quick table statistics with mutate
 filterStats %>%
   as.data.frame(row.names = 1:16) %>% 
   mutate(
@@ -184,7 +184,7 @@ The goal here is good, not perfect, so don't sweat the small stuff.
 
 # De-replicate reads
 
-De-replication combines all identical sequencing reads into "unique sequences" with a corresponding "abundance" equal to the number of reads with that unique sequence.
+This de-replication step simply combines all identical sequencing reads into "unique sequences" with a corresponding "abundance" equal to the number of reads with that unique sequence.
 
 ```{r dereplicate}
 # dereplicate sequences (no error correction yet!)
@@ -200,7 +200,7 @@ derep_seqsF[[1]]
 
 # Denoise sequences
 
-We are now ready to apply [the core sample inference algorithm](https://www.nature.com/articles/nmeth.3869#methods) to the dereplicated data.
+We are now ready to apply [the DADA2 core sample inference algorithm](https://www.nature.com/articles/nmeth.3869#methods) to the dereplicated data.
 
 ```{r dada}
 dada_seqsF <- dada(derep = derep_seqsF, err = errF, multithread = 2)
@@ -213,7 +213,7 @@ dada_seqsF[[1]]
 
 # Merge Paired Reads
 
-```{r}
+```{r, collapse=TRUE}
 merged_seqs <- mergePairs(
   dadaF = dada_seqsF, derepF = derep_seqsF,
   dadaR = dada_seqsR, derepR = derep_seqsR, 
@@ -258,6 +258,8 @@ seqtab_nochim <- removeBimeraDenovo(seqtab, method = "consensus", verbose = TRUE
 
 # Track reads through the pipeline
 
+## Read tracking table
+
 ```{r}
 # This is some custom code to pull out important values from the dada2 workflow
 # Don't worry too much about the code at this point, just focus on the results table 
@@ -273,6 +275,8 @@ readTrackingDf <- tibble(
 readTrackingDf
 ```
 
+## Read tracking plots
+
 ```{r}
 # ggplot2 (and all of tidyverse) works really well with 'long' form data
 # Let's convert to long form so we can make a line plot of each stage
@@ -284,14 +288,14 @@ readTrackingDf_long <- readTrackingDf %>%
     names_to = "Stage" # Column name for stages
   ) %>% 
   mutate(Proportion = Number/max) %>% 
-  mutate(sample = forcats::fct_reorder(sample, -Number)) %>% 
+  mutate(sample = forcats::fct_reorder(sample, Number)) %>% 
   mutate(Stage = forcats::fct_reorder(Stage, -Number))
 ```
 
 ```{r}
 # Now we can plot the number of reads per each stage
 readTrackingDf_long %>% 
-  ggplot(aes(x = sample, y = Number, fill = Stage, group = Stage)) +
+  ggplot(mapping = aes(x = sample, y = Number, fill = Stage, group = Stage)) +
   # geom_col(position = position_dodge(preserve = 'total')) +
   geom_col(position = position_identity(), width = readTrackingDf_long$Proportion * 0.8) +
   theme_minimal() +
@@ -301,8 +305,8 @@ readTrackingDf_long %>%
 
 ```{r}
 readTrackingDf_long %>% 
-ggplot(aes(x = Stage, y = Number, colour = sample)) +
-  geom_line(aes(colour = sample, group = sample), alpha = 0.7, size = 1) +
+ggplot(mapping = aes(x = Stage, y = Number, colour = sample)) +
+  geom_line(mapping = aes(group = sample), alpha = 0.7, size = 1) +
   geom_point(alpha = 0.7, size = 2) +
   scale_colour_viridis_d(option = 'turbo') +
   theme_classic()
@@ -346,6 +350,9 @@ get_taxa_unique(ps, "Family")
 ```
 
 # Extras
+
+The topics in this extras section are not for this workshop, but are likely relevant
+if you use DADA2 in your own work. 
 
 ## DADA2 options:
 
