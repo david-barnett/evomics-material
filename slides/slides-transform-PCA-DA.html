@@ -400,19 +400,23 @@
 </section>
 <section id="more-dissimilarity" class="slide level2 smaller" data-transition="convex-in convex-out">
 <h2>More Dissimilarity</h2>
-<div>
+<div class="fragment">
 <ul>
-<li class="fragment"><strong>Ecological &amp; Phylogenetic dissimilarities / distances</strong>:
+<li><strong>Ecological &amp; Phylogenetic dissimilarities / distances</strong>:
 <ul>
-<li class="fragment">Binary Jaccard</li>
-<li class="fragment">Bray Curtis</li>
-<li class="fragment">UniFrac (unweighted/weighted/generalized)</li>
-<li class="fragment">Others…</li>
+<li>Binary Jaccard</li>
+<li>Bray Curtis</li>
+<li>UniFrac (unweighted/weighted/generalized)</li>
+<li>Others…</li>
 </ul></li>
-<li class="fragment"><strong>Euclidean distances</strong>
+</ul>
+</div>
+<div class="fragment">
 <ul>
-<li class="fragment">Widely used in data science</li>
-<li class="fragment">Useful for microbiome abundance data??</li>
+<li><strong>Euclidean distances</strong>
+<ul>
+<li>Widely used in data science</li>
+<li>Useful for microbiome abundance data??</li>
 </ul></li>
 </ul>
 </div>
@@ -881,12 +885,27 @@ q 5</code></pre>
 <li class="fragment"><strong>Other</strong>: LEfSe, Beta-binomial reg., ZINB reg., ZIGDM reg., …!</li>
 </ul>
 </div>
-
-<img data-src="images/Nearing-preprint-disturbing.png" class="r-stretch"></section>
+<div class="fragment">
+<p><img data-src="images/Nearing-preprint-disturbing.png"></p>
+</div>
+</section>
 <section id="differential-abundance---which-rank" class="slide level2" data-transition="convex">
 <h2>Differential Abundance - which rank?</h2>
 
-<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-23-1.png" width="720" class="r-stretch"></section>
+<img data-src="slides-transform-PCA-DA_files/figure-revealjs/unnamed-chunk-23-1.png" width="720" class="r-stretch"><aside class="notes">
+<p>As well as choosing the statistical method, you also need to choose a rank at which to aggregate your taxa before differential abundance testing.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="differential-abundance-with-microviz" class="slide level2" data-transition="convex">
 <h2>Differential Abundance with microViz</h2>
 <p>Keep it simple (-ish)</p>
@@ -898,7 +917,7 @@ q 5</code></pre>
 <li class="fragment">Log2 transform of taxon proportions</li>
 <li class="fragment">(approach borrowed from Maaslin2)</li>
 </ul></li>
-<li class="fragment"><p>Model every taxon, at all ranks</p>
+<li class="fragment"><p>Model every taxon, at all ranks!</p>
 <ul>
 <li class="fragment">Visualize on a cladogram tree</li>
 </ul></li>
@@ -908,7 +927,36 @@ q 5</code></pre>
 <section id="differential-abundance-1" class="slide level2" data-transition="convex">
 <h2>Differential Abundance</h2>
 
-<img data-src="images/trees.png" class="r-stretch"><div class="footer footer-default">
+<img data-src="images/trees.png" class="r-stretch"><aside class="notes">
+<p>Here is an example of visualizing the results of many statistical tests on a cladogram structure. The grey tree with labels on this side is just a key, so you know which taxa are which. Each node represents a taxon, the nodes close to the center are the phyla, and around the edge are the genera, in this case, which all the other ranks in between on the concentric circles (which are probably too faint to see on the screen)</p>
+<p>The smaller plots with colours, show the results of many statistical tests. Each covariate in the statistical models gets its own tree. So in this example that’s only birth mode, and the age of the infant when the sample was taken. The colour of each node (each taxon) represents the direction and strength of that taxon’s association with that covariate. So the blue branch up there, representing Bacteroidetes phylum and genera inside that phylum, they’re negatively associated with C-section birth. You can also add markers for statistical significance, which in this case is unadjusted p-values &lt; 0.05, although that should really be FDR corrected p-values!</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="your-turn" class="slide level2 smaller" data-transition="convex">
+<h2>Your turn</h2>
+<ul>
+<li><p>Link to exercises guidance: <a href="https://david-barnett.github.io/evomics-material/exercises/microViz-3-transformations-PCA-DA-exercises" class="uri">https://david-barnett.github.io/evomics-material/exercises/microViz-3-transformations-PCA-DA-exercises</a></p></li>
+<li><p>Try out making heatmaps and PCA biplots, with transformed abundance data.</p></li>
+</ul>
+<p>See Gloor 2017 <a href="https://doi.org/10.3389/fmicb.2017.02224">Microbiome Datasets Are Compositional: And This Is Not Optional</a></p>
+<ul>
+<li>Try out differential abundance testing and creating taxonomic association tree plots</li>
+</ul>
+<p>Nearing 2021 is a great intro to the Differential Abundance topic/problem: <a href="https://www.nature.com/articles/s41467-022-28034-z" class="uri">https://www.nature.com/articles/s41467-022-28034-z</a></p>
+<ul>
+<li>This is the last topic - thank you for your attention and effort :)</li>
+</ul>
+<div class="footer footer-default">
 
 </div>
 </section></section>

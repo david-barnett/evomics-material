@@ -189,8 +189,8 @@ The centered-log-ratio transformation (along with some other similar ratio trans
 Practically, the CLR transformation involves finding the geometric mean of each sample, and then dividing abundance of each taxon in that sample by this geometric mean.
 Finally you take the natural log of this ratio.
 
-For more details, check out Gloor 2017, and work by Thomas Quinn.
-TODO: link.
+For more details, check out Gloor 2017 (and maybe work by Thomas Quinn).
+[Microbiome Datasets are Compositional: and this is not optional](https://doi.org/10.3389/fmicb.2017.02224)
 
 </details>
 
@@ -264,15 +264,15 @@ pca
 How to interpret the taxa loading vectors?
 Cautiously.
 
-The relative length and direction of an arrow indicates how much that taxon contributes to the variation on each visible PC axis.
-e.g.
+There are caveats and nuance to the interpretation of these plots, which are called PCA bi-plots, and you can read more about here: <https://sites.google.com/site/mb3gustame/indirect-gradient-analysis/pca>
+
+The relative length and direction of an arrow indicates how much that taxon contributes to the variation on each visible PC axis, e.g.
 Variation in Enterococcus contributes quite a lot to variation along the PC2 axis.
 
 This allows you to infer that samples positioned at the bottom of the plot will tend to have higher relative abundance of Enterococcus than samples at the top of the plot.
 
 Interestingly, samples on the right of the plot (which tend to be vaginally-delivered infants) seem to have relatively more Bifidobacterium, Bacteroides and Escherichia, whilst the C-section born infants have relatively more Veillonella.
 
-There are caveats and nuance to the interpretation of these plots, which are called PCA bi-plots, and you can read more about here: TODO link to appropriate gusta me ecology page.
 
 *(Side note, Phocaeicola were considered part of Bacteroides until this year!)*
 
@@ -497,6 +497,9 @@ key
 You can do more with these trees to customise them to your liking.
 See an extended tutorial [here on the microViz website](https://david-barnett.github.io/microViz/articles/web-only/modelling-taxa.html#plot-all-the-taxatree_stats): including how to directly label taxa on the colored plots, change the layout and style of the trees, and even how to use a different regression modelling approach.
 
+```{r}
+# try it out!
+```
 
 # Session info
 

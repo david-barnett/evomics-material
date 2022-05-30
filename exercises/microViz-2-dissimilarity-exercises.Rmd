@@ -337,7 +337,11 @@ Takes distance matrix and finds new dimensions (a co-ordinate system if you like
 The new dimensions are created with the aim to preserve the original distances between samples, but to capture the majority of this distance information in the first few dimensions.
 We like this because it makes it easier to visualize the patterns in your data (in 2D or 3D).
 
-TODO link to gusta me.
+There is helpful info about ordination methods including PCoA on
+the GUide to STatistical Analysis in Microbial Ecology (GUSTA ME) website.
+<https://sites.google.com/site/mb3gustame/dissimilarity-based-methods/principal-coordinates-analysis>
+This website covers a lot of topics, we'll cover PCoA now, and PCA in the next session.
+The other topics may be interesting for you to read at a later date if you'll work on microbiome analysis.
 
 ```{r}
 shao4 %>%
@@ -436,7 +440,10 @@ Permutational multivariate analysis of variance.
 -   Multivariate - more than one dependent variable (multiple taxa!)
 -   Permutational - statistical significance estimates obtained by shuffling the data many times
 
-(Sometimes also called NP-MANOVA, non-parametric MANOVA e.g. on gusta me - insert link TODO)
+For more details. See this excellent book chapter by Marti Anderson on PERMANOVA: <https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841>
+
+Sometimes also called NP-MANOVA (non-parametric MANOVA) e.g. on the
+GUide to STatistical Analysis in Microbial Ecology [website.](https://sites.google.com/site/mb3gustame/hypothesis-tests/manova/npmanova)
 
 **TLDR:** Are those groups on the PCoA actually different??
 

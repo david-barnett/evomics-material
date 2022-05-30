@@ -37,12 +37,15 @@ ibd <- readRDS(here::here("data/ibd.rds"))
 
 ## More Dissimilarity {.smaller transition="convex-in convex-out"}
 
-::: incremental
+::: fragment
 -   **Ecological & Phylogenetic dissimilarities / distances**:
     -   Binary Jaccard
     -   Bray Curtis
     -   UniFrac (unweighted/weighted/generalized)
     -   Others...
+:::
+
+::: fragment
 -   **Euclidean distances**
     -   Widely used in data science
     -   Useful for microbiome abundance data??
@@ -507,7 +510,11 @@ It is of course possible and interesting to also look at one taxon at a time.
 
 :::
 
+::: fragment
+
 ![](images/Nearing-preprint-disturbing.png)
+
+:::
 
 ## Differential Abundance - which rank? {transition="convex"}
 
@@ -532,6 +539,10 @@ shao19 %>%
   theme(plot.title = element_blank())
 ```
 
+::: notes
+As well as choosing the statistical method, you also need to choose a rank
+at which to aggregate your taxa before differential abundance testing. 
+:::
 
 ## Differential Abundance with microViz {transition="convex"}
 
@@ -545,7 +556,7 @@ Keep it simple (-ish)
     -  Log2 transform of taxon proportions
     -  (approach borrowed from Maaslin2)
 
--  Model every taxon, at all ranks
+-  Model every taxon, at all ranks!
     -  Visualize on a cladogram tree
 
 :::
@@ -554,4 +565,29 @@ Keep it simple (-ish)
 
 ![](images/trees.png)
 
+::: notes
+Here is an example of visualizing the results of many statistical tests on a cladogram structure.
+The grey tree with labels on this side is just a key, so you know which taxa are which.
+Each node represents a taxon, the nodes close to the center are the phyla, and around the edge are the 
+genera, in this case, which all the other ranks in between on the concentric circles (which are probably too faint to see on the screen)
 
+The smaller plots with colours, show the results of many statistical tests. Each covariate in the 
+statistical models gets its own tree. So in this example that's only birth mode, and the age of the infant when the sample was taken. The colour of each node (each taxon) represents the direction and strength of that taxon's association with that covariate. So the blue branch up there, representing 
+Bacteroidetes phylum and genera inside that phylum, they're negatively associated with C-section birth.
+You can also add markers for statistical significance, which in this case is unadjusted p-values < 0.05, although that should really be FDR corrected p-values!
+:::
+
+## Your turn {transition="convex" .smaller}
+
+-   Link to exercises guidance: <https://david-barnett.github.io/evomics-material/exercises/microViz-3-transformations-PCA-DA-exercises>
+
+-   Try out making heatmaps and PCA biplots, with transformed abundance data.
+
+See Gloor 2017 [Microbiome Datasets Are Compositional: And This Is Not Optional](https://doi.org/10.3389/fmicb.2017.02224)
+
+-   Try out differential abundance testing and creating taxonomic association tree plots
+
+Nearing 2021 is a great intro to the Differential Abundance topic/problem:
+<https://www.nature.com/articles/s41467-022-28034-z>
+
+-   This is the last topic - thank you for your attention and effort :)
