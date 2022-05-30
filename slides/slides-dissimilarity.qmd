@@ -270,10 +270,10 @@ shaoSubset %>%
 
 ::: notes
 PCoA interpretation: - ordination method attempts to preserve the original pairwise distances between samples.
-So closer samples have 
+So closer samples have more similar ecosystems, more distant samples have more different ecosystems.
 :::
 
-## Ordination with PCoA {.smaller auto-animate=true}
+## Ordination with PCoA - top genus {.smaller auto-animate=true}
 
 #### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
 
@@ -284,7 +284,8 @@ From distance matrix to new dimensions
 #| echo: true
 shaoSubset %>%
   ps_calc_dominant(
-    rank = "genus", n_max = 2, var = "Top_Genus", threshold = 0.2
+    rank = "genus", n_max = 2, 
+    var = "Top_Genus", threshold = 0.2
   ) %>%
   tax_agg(rank = "genus") %>%
   dist_calc(dist = "bray") %>%
@@ -293,14 +294,42 @@ shaoSubset %>%
     alpha = 0.6, size = 3, color = "Top_Genus"
   ) +
   theme_classic(12) +
-  coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
+  coord_cartesian(
+    xlim = c(-2, 2), ylim = c(-2, 2)
+  ) +
   theme(
     legend.position = c(0.175, 0.8),
     legend.background = element_rect(colour = "black")
   )
 ```
 
-## Ordination with PCoA {.smaller auto-animate=true}
+::: notes
+We can convince ourselves that this is working okay by just looking at top (most abundant) genus for each commmunity.
+
+Note however that not all of the distance information is shown in these first two dimensions.
+We see a percentage noted on each axis. This indicates the proportion of variation in our data
+that is explained by this axis. 
+:::
+
+## Dimensionality reduction? {transition="convex" .smaller}
+
+- PCoA axes are ordered in decreasing amount of variation explained
+- Only use or look at the first few = "dimensionality reduction"
+
+```{r, fig.height=3, fig.width=6}
+shaoSubset %>%
+  tax_agg(rank = "genus") %>%
+  dist_calc(dist = "bray") %>%
+  ord_calc(method = "PCoA") %>%
+  ord_get() %>%
+  plot_scree() +
+  geom_col(data = ~ filter(., axis %in% c("MDS1", "MDS2")), fill = "red") +
+  labs(y = "Variation explained", x = NULL) +
+  theme(panel.background = element_blank())
+```
+
+
+## Ordination with PCoA - useful? {.smaller auto-animate=true}
 
 #### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
 
@@ -324,7 +353,7 @@ shaoSubset %>%
   )
 ```
 
-## Ordination with PCoA {.smaller auto-animate=true}
+## Ordination with PCoA - useful {.smaller auto-animate=true}
 
 #### "Principal Co-ordinates Analysis" (aka MDS - multi-dimensional scaling)
 
@@ -391,23 +420,6 @@ shaoSubset %>%
 :::
 ::::
 
-
-## Dimensionality reduction? {transition="convex" .smaller}
-
-- PCoA axes are ordered in decreasing amount of variation explained
-- Only use or look at the first few = "dimensionality reduction"
-
-```{r, fig.height=3, fig.width=6}
-shaoSubset %>%
-  tax_agg(rank = "genus") %>%
-  dist_calc(dist = "bray") %>%
-  ord_calc(method = "PCoA") %>%
-  ord_get() %>%
-  plot_scree() +
-  geom_col(data = ~ filter(., axis %in% c("MDS1", "MDS2")), fill = "red") +
-  labs(y = "Variation explained", x = NULL) +
-  theme(panel.background = element_blank())
-```
 
 ## Ordination - interactive {.smaller transition="convex-in fade-out"}
 
