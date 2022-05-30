@@ -397,6 +397,20 @@
 <div class="cell">
 
 </div>
+<aside class="notes">
+<p>Okay. So before the break we processed some amplicon sequencing data with DADA2. We identified the unique bacterial taxa (ASVs) in a few samples, assigned the ASVs’ taxonomic classifications by mapping to a reference database, and quantified their relative abundances. We finished up by placing this data into a phyloseq object.</p>
+<p>Now we’re going to look at a phyloseq object containing some similar 16S amplicon sequencing data, which has been processed already with DADA2. This data comes from an experimental study of the mouse gut microbiome. There are more details on the study design and aims in the exercise material, but the details aren’t important for now.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="intro-to-phyloseq" class="slide level2" data-transition="convex">
 <h2>Intro to phyloseq</h2>
@@ -418,6 +432,19 @@ tax_table()   Taxonomy Table:    [ 3229 taxa by 7 taxonomic ranks ]</code></pre>
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>We read in the R data object, and print it. Now lets look at the pieces.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="taxonomy-table" class="slide level2">
 <h2>Taxonomy table</h2>
@@ -543,6 +570,19 @@ D0.G1  111.Thackray.D0.G1 TACCGAAGGTAT 368     2    111 FALSE   G1             D
 <section id="cheat-code" class="slide level2" data-transition="convex-out">
 <h2>Cheat code</h2>
 <div class="sourceCode" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="fu">View</span>(mice)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<aside class="notes">
+<p>Interactively in Rstudio, View is an easy way to look at S4 objects. But don’t put this in a script!</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section></section>
 <section>
 <section id="seeing-is-believing" class="title-slide slide level1 center" data-transition="convex-in convex-out">
@@ -600,7 +640,8 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 <span id="cb23-4"><a href="#cb23-4"></a>) <span class="sc">+</span> <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="slides-intro-diversity_files/figure-revealjs/unnamed-chunk-14-1.png" width="720" class="r-stretch"><aside class="notes">
-<p>Rats. What is this junk?! The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table. The total number of reads also varies a lot between samples!</p>
+<p>We’ll use the function comp_barplot to make bar plots of the microbiome composition.</p>
+<p>Each row of the plot is a different sample. And the bar heights represent the readcounts from each sample which are coloured by the ASV they belong to. But we can improve this plot. The ASVs have uninformative IDs, and the total number of reads is not particularly useful information.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -621,7 +662,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 <span id="cb24-4"><a href="#cb24-4"></a>) <span class="sc">+</span> <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="slides-intro-diversity_files/figure-revealjs/unnamed-chunk-15-1.png" width="720" class="r-stretch"><aside class="notes">
-<p><strong>Total reads != biomass</strong> –&gt; Plot proportions The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample. So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.</p>
+<p>Total readcount from the sequencing does not correspond to the total biomass or bacterial load of the samples. So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -645,7 +686,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 <span id="cb25-4"><a href="#cb25-4"></a>) <span class="sc">+</span> <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="slides-intro-diversity_files/figure-revealjs/unnamed-chunk-17-1.png" width="720" class="r-stretch"><aside class="notes">
-<p>We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are.</p>
+<p>We can also rename the unique taxa with a more informative name, according to their classification at, for example, Family level, and how common they are. Helpful, now we can see that most of the top ASVs are from the Porphyromonadaceae family.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -666,7 +707,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 <span id="cb26-4"><a href="#cb26-4"></a>) <span class="sc">+</span> <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="slides-intro-diversity_files/figure-revealjs/unnamed-chunk-18-1.png" width="720" class="r-stretch"><aside class="notes">
-<p>Sadly we don’t have enough distinct colours to show all the unique taxa.</p>
+<p>But sadly we don’t have enough distinct colours to label all the unique taxa, we can show them like this. There’s a lot.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -687,7 +728,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 <span id="cb27-4"><a href="#cb27-4"></a>) <span class="sc">+</span> <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="slides-intro-diversity_files/figure-revealjs/unnamed-chunk-19-1.png" width="720" class="r-stretch"><aside class="notes">
-<p>So let’s “aggregate” all the counts into family-level groups. By aggregating at family level, we have sacrificed taxonomic resolution, compared to using ASVs. But this way we can get an idea of which families are the most abundant, and how variable the communities are. Try making some similar plots aggregated at different taxonomic ranks. Change the <code>tax_level</code> argument.</p>
+<p>So let’s “aggregate” all the counts into family-level groups. By aggregating at family level, we have sacrificed taxonomic resolution, compared to using ASVs. But this way we can get an idea of which families are the most abundant, and how variable the communities are. You can make similar plots aggregated at different taxonomic ranks.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -729,7 +770,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 <span id="cb29-4"><a href="#cb29-4"></a>  ) <span class="sc">+</span> <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="slides-intro-diversity_files/figure-revealjs/unnamed-chunk-21-1.png" width="720" class="r-stretch"><aside class="notes">
-<p>A note on phylum names! There have been major changes this year and some of these are now old names. Most published research is of course with the old names (and still probably will be for a year or so).</p>
+<p>A note on phylum names! Next slide.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -753,7 +794,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 </ul>
 </div>
 <aside class="notes">
-<p>A note on phylum names! There have been major changes this year and some of these are now old names. Most published research is of course with the old names (and still probably will be for a year or so).</p>
+<p>There have been major changes this year and some of these are now old names. Most published research is of course with the old names (and still probably will be for a year or so).</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -815,7 +856,7 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 </div>
 <p>The more the merrier. Just counting. <span class="math inline">\(N = N\)</span>.</p>
 <aside class="notes">
-<p>The simplest measure is just counting, aka “Observed Richness”. Let’s compute the observed richness and label each sample with it.</p>
+<p>The simplest measure of diversity, or more strictly “richness” is just counting, aka “Observed Richness”. Here we’ve computed the observed richness of family level taxa and labeled each sample with it. I took a range of samples with different richnesses, so you can get an idea how this looks.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -837,7 +878,8 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 </div>
 <p>Richness AND evenness matter. <span class="math inline">\(H = -\sum_{i=1}^Np_i\ln p_i\)</span></p>
 <aside class="notes">
-<p>Shannon index often is H, p is proportion, Shannon index, TODO: describe Shannon index and exp shannon.</p>
+<p>A better measure of ecosystem diversity will also consider the evenness of the ecosystem. If an ecosystem is dominated by one taxon, with several other taxa present, but which only a few counts, that is intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa. You can kind of see this from the bars which are the same samples as before, just now ordered and labelled by increasing Shannon diveristy.</p>
+<p>Shannon index often is called H, p is proportion of the i’th taxon. For each taxon, you multiply the proportional abundance by the natural log of the proportion. You can try it out for yourself to convince yourself you get larger (negative) values for higher proportions. The highest value you can acheive with for example 20 taxa, is if they each have a proportion of 5%. You change the sign of the result to a positive number, as this makes more sense: higher numbers means higher diversity.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -858,10 +900,29 @@ tax_table()   Taxonomy Table:    [ 563 taxa by 7 taxonomic ranks ]</code></pre>
 </div>
 </div>
 <p><span class="math inline">\(e^H = N\)</span> if all taxa were equally abundant.</p>
+<aside class="notes">
+<p>The value of the Shannon index itself has no intuitive meaning. You can compare them, but not so easily interpret any one number.</p>
+<p>The concept of “effective numbers” of taxa is useful here. If you take the exponent of the Shannon index, what you get is the number of taxa in an evenly abundant ecosystem with the same Shannon index. This will be the actual number of taxa (observed richness) if your original ecosystem was actually perfectly even. It will otherwise be less than the number of taxa actually in your ecosystem.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
-<section id="evenness---simpsons-equitability" class="slide level2">
-<h2>Evenness - Simpson’s equitability</h2>
-<p>To do? Simpson’s equitability, I didn’t write a convenient ps_calc_* function for this yet so use, microbiome package directly…</p>
+<section id="your-turn" class="slide level2" data-transition="convex">
+<h2>Your turn</h2>
+<ul>
+<li><p>Link to exercises guidance: <a href="https://david-barnett.github.io/evomics-material/exercises/microViz-1-intro-diversity-exercises" class="uri">https://david-barnett.github.io/evomics-material/exercises/microViz-1-intro-diversity-exercises</a></p></li>
+<li><p>Try out exploring the mouse data, making bar charts, calculating alpha diversity and doing some simple stats</p></li>
+<li><p>Excellent resource for more diversity details: <a href="https://www.davidzeleny.net/anadat-r/doku.php/en:div-ind" class="uri">https://www.davidzeleny.net/anadat-r/doku.php/en:div-ind</a></p></li>
+<li><p>Next topic after dinner</p></li>
+</ul>
 <div class="footer footer-default">
 
 </div>

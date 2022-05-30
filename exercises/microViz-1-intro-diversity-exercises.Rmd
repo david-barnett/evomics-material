@@ -33,7 +33,7 @@ mice <- readRDS(here::here('data/mice.rds'))
 shao19 <- readRDS(here::here('data/shao19.rds'))
 ```
 
-We'll use two datasets today, both are about the gut microbiome.
+We'll primarily use two datasets today, both are about the gut microbiome.
 The first is from a study of antibiotic administration in mice, and the second is from a large birth cohort study in human infants.
 
 Each dataset was generated using different sequencing techniques, and different sequence data processing approaches.

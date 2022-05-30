@@ -31,6 +31,13 @@ options(width = 500)
 miceBars <- readRDS(here::here('slides/data/barplots.rds'))
 ```
 
+::: notes
+Okay. So before the break we processed some amplicon sequencing data with DADA2. 
+We identified the unique bacterial taxa (ASVs) in a few samples, assigned the ASVs' taxonomic classifications by mapping to a reference database, and quantified their relative abundances. 
+We finished up by placing this data into a phyloseq object.
+
+Now we're going to look at a phyloseq object containing some similar 16S amplicon sequencing data, which has been processed already with DADA2. This data comes from an experimental study of the mouse gut microbiome. There are more details on the study design and aims in the exercise material, but the details aren't important for now. 
+:::
 
 ## Intro to phyloseq {transition="convex"}
 
@@ -52,6 +59,10 @@ Printed object shows you functions to access the data inside!
 #| echo: true
 mice
 ```
+:::
+
+::: notes
+We read in the R data object, and print it. Now lets look at the pieces.
 :::
 
 ## Taxonomy table
@@ -123,6 +134,11 @@ sample_variables(mice)
 View(mice)
 ```
 
+::: notes
+Interactively in Rstudio, View is an easy way to look at S4 objects.
+But don't put this in a script!
+:::
+
 # Seeing is believing {transition="convex-in convex-out"}
 
 Get a feel for your data, by making simple plots.
@@ -163,10 +179,12 @@ miceBars$bad %>% ggdraw()
 ```
 
 ::: notes
-Rats.
-What is this junk?!
-The unique taxa have uninformative IDs, and we also got a message about problems with the taxonomy table.
-The total number of reads also varies a lot between samples!
+We'll use the function comp_barplot to make bar plots of the microbiome composition.
+
+Each row of the plot is a different sample. 
+And the bar heights represent the readcounts from each sample which are coloured by the ASV they belong to.
+But we can improve this plot. 
+The ASVs have uninformative IDs, and the total number of reads is not particularly useful information.
 :::
 
 ## Proportional bar plots {.smaller transition="fade"}
@@ -183,7 +201,7 @@ miceBars$comp %>% ggdraw()
 ```
 
 ::: notes
-**Total reads != biomass** --\> Plot proportions The total number of reads for each sample is NOT a reliable indicator of the biomass or bacterial load of each sample.
+Total readcount from the sequencing does not correspond to the total biomass or bacterial load of the samples.
 So for now we will just consider the relative abundance of each taxon, as proportions of the total counts for that sample.
 :::
 
@@ -208,7 +226,7 @@ miceBars$named %>% ggdraw()
 ```
 
 ::: notes
-We can also rename the unique taxa with a more informative name, according to their classification at Family level, and how common they are.
+We can also rename the unique taxa with a more informative name, according to their classification at, for example, Family level, and how common they are. Helpful, now we can see that most of the top ASVs are from the Porphyromonadaceae family.
 :::
 
 ## Proportional bar plot - all ASVs {.smaller transition="fade"}
@@ -225,7 +243,8 @@ miceBars$unique %>% ggdraw()
 ```
 
 ::: notes
-Sadly we don't have enough distinct colours to show all the unique taxa.
+But sadly we don't have enough distinct colours to label all the unique taxa, 
+we can show them like this. There's a lot.
 :::
 
 ## Aggregated bar plot - Families {.smaller transition="fade"}
@@ -245,8 +264,7 @@ miceBars$family %>% ggdraw()
 So let's "aggregate" all the counts into family-level groups.
 By aggregating at family level, we have sacrificed taxonomic resolution, compared to using ASVs.
 But this way we can get an idea of which families are the most abundant, and how variable the communities are.
-Try making some similar plots aggregated at different taxonomic ranks.
-Change the `tax_level` argument.
+You can make similar plots aggregated at different taxonomic ranks.
 :::
 
 ## Aggregated bar plot - Genera {.smaller transition="fade"}
@@ -281,8 +299,7 @@ miceBars$phylum %>% ggdraw()
 
 ::: notes
 A note on phylum names!
-There have been major changes this year and some of these are now old names.
-Most published research is of course with the old names (and still probably will be for a year or so).
+Next slide.
 :::
 
 ## Phylum name changes! {transition="convex"}
@@ -295,7 +312,6 @@ Most published research is of course with the old names (and still probably will
 :::
 
 ::: notes
-A note on phylum names!
 There have been major changes this year and some of these are now old names.
 Most published research is of course with the old names (and still probably will be for a year or so).
 :::
@@ -331,14 +347,14 @@ How diverse is the bacterial microbiome of each sample?
 ```{r}
 #| out-width: '6.6in'
 #| out-height: '4.4in'
-mice %>% 
-  ps_calc_richness(rank = 'Family', index = 'observed', varname = 'N') %>%
-  ps_dedupe(vars = "N", method = 'first', verbose = FALSE) %>% 
-  ps_filter(N %% 2 == 1) %>% 
-  ps_arrange(desc(N)) %>% 
+mice %>%
+  ps_calc_richness(rank = "Family", index = "observed", varname = "N") %>%
+  ps_dedupe(vars = "N", method = "first", verbose = FALSE) %>%
+  ps_filter(N %% 2 == 1) %>%
+  ps_arrange(desc(N)) %>%
   comp_barplot(
-    tax_level = "Family", n_taxa = 13, label = 'N', bar_width = 0.7,
-    sample_order = 'asis', merge_other = FALSE
+    tax_level = "Family", n_taxa = 13, label = "N", bar_width = 0.7,
+    sample_order = "asis", merge_other = FALSE
   ) + coord_flip()
 ```
 
@@ -347,8 +363,9 @@ Just counting.
 $N = N$.
 
 ::: notes
-The simplest measure is just counting, aka "Observed Richness".
-Let's compute the observed richness and label each sample with it.
+The simplest measure of diversity, or more strictly "richness" is just counting, aka "Observed Richness".
+Here we've computed the observed richness of family level taxa and labeled each sample with it.
+I took a range of samples with different richnesses, so you can get an idea how this looks.
 :::
 
 ## Diversity - Shannon index (H)
@@ -356,16 +373,16 @@ Let's compute the observed richness and label each sample with it.
 ```{r}
 #| out-height: '4.4in'
 #| out-width: '6.6in'
-mice %>% 
-  ps_calc_richness(rank = 'Family', index = 'observed', varname = 'N') %>%
-  ps_calc_diversity(rank = 'Family', index = 'shannon', varname = 'shannon') %>% 
-  ps_dedupe(vars = "N", method = 'first', verbose = FALSE) %>% 
-  ps_filter(N %% 2 == 1) %>% 
-  ps_arrange(desc(shannon)) %>% 
-  ps_mutate(shannon = sprintf("%.1f", shannon)) %>% 
+mice %>%
+  ps_calc_richness(rank = "Family", index = "observed", varname = "N") %>%
+  ps_calc_diversity(rank = "Family", index = "shannon", varname = "shannon") %>%
+  ps_dedupe(vars = "N", method = "first", verbose = FALSE) %>%
+  ps_filter(N %% 2 == 1) %>%
+  ps_arrange(desc(shannon)) %>%
+  ps_mutate(shannon = sprintf("%.1f", shannon)) %>%
   comp_barplot(
-    tax_level = "Family", n_taxa = 13, label = 'shannon', bar_width = 0.7,
-    sample_order = 'asis', merge_other = FALSE
+    tax_level = "Family", n_taxa = 13, label = "shannon", bar_width = 0.7,
+    sample_order = "asis", merge_other = FALSE
   ) + coord_flip()
 ```
 
@@ -373,7 +390,12 @@ Richness AND evenness matter.
 $H = -\sum_{i=1}^Np_i\ln p_i$
 
 ::: notes
-Shannon index often is H, p is proportion, Shannon index, TODO: describe Shannon index and exp shannon.
+A better measure of ecosystem diversity will also consider the evenness of the ecosystem. 
+If an ecosystem is dominated by one taxon, with several other taxa present, but which only a few counts, that is intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa. You can kind of see this from the bars which are the same samples as before, just now ordered and labelled by increasing Shannon diveristy.
+
+Shannon index often is called H, p is proportion of the i'th taxon. 
+For each taxon, you multiply the proportional abundance by the natural log of the proportion.
+You can try it out for yourself to convince yourself you get larger (negative) values for higher proportions. The highest value you can acheive with for example 20 taxa, is if they each have a proportion of 5%. You change the sign of the result to a positive number, as this makes more sense: higher numbers means higher diversity.
 :::
 
 ## Diversity - Effective numbers
@@ -381,23 +403,37 @@ Shannon index often is H, p is proportion, Shannon index, TODO: describe Shannon
 ```{r}
 #| out-height: '4.4in'
 #| out-width: '6.6in'
-mice %>% 
-  ps_calc_richness(rank = 'Family', index = 'observed', varname = 'N') %>%
-  ps_calc_diversity(rank = 'Family', index = 'shannon', varname = 'shannon') %>% 
-  ps_dedupe(vars = "N", method = 'first', verbose = FALSE) %>% 
-  ps_filter(N %% 2 == 1) %>% 
-  ps_arrange(desc(shannon)) %>% 
-  ps_mutate(shannon = round(exp(shannon))) %>% 
+mice %>%
+  ps_calc_richness(rank = "Family", index = "observed", varname = "N") %>%
+  ps_calc_diversity(rank = "Family", index = "shannon", varname = "shannon") %>%
+  ps_dedupe(vars = "N", method = "first", verbose = FALSE) %>%
+  ps_filter(N %% 2 == 1) %>%
+  ps_arrange(desc(shannon)) %>%
+  ps_mutate(shannon = round(exp(shannon))) %>%
   comp_barplot(
-    tax_level = "Family", n_taxa = 13, label = 'shannon', bar_width = 0.7,
-    sample_order = 'asis', merge_other = FALSE
+    tax_level = "Family", n_taxa = 13, label = "shannon", bar_width = 0.7,
+    sample_order = "asis", merge_other = FALSE
   ) + coord_flip()
 ```
 
 $e^H = N$ if all taxa were equally abundant.
 
+::: notes
+The value of the Shannon index itself has no intuitive meaning. 
+You can compare them, but not so easily interpret any one number.
 
-## Evenness - Simpson's equitability
+The concept of "effective numbers" of taxa is useful here.
+If you take the exponent of the Shannon index, what you get is the number of taxa in an evenly abundant ecosystem with the same Shannon index. This will be the actual number of taxa (observed richness) if your original ecosystem was actually perfectly even. It will otherwise be less than the number of taxa actually in your ecosystem. 
+:::
 
-To do?
-Simpson's equitability, I didn't write a convenient ps_calc\_\* function for this yet so use, microbiome package directly...
+## Your turn {transition="convex"}
+
+- Link to exercises guidance:
+<https://david-barnett.github.io/evomics-material/exercises/microViz-1-intro-diversity-exercises>
+
+- Try out exploring the mouse data, making bar charts, calculating alpha diversity and doing some simple stats
+
+- Excellent resource for more diversity details:
+<https://www.davidzeleny.net/anadat-r/doku.php/en:div-ind>
+
+- Next topic after dinner
