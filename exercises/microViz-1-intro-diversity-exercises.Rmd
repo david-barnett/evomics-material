@@ -1,6 +1,6 @@
 ---
 title: "Microbiome data analysis with microViz"
-subtitle: "Intro & Diversity"
+subtitle: "Intro & Diversity Exercises"
 author: "David Barnett"
 date: "`r Sys.Date()`"
 output: 
@@ -320,7 +320,6 @@ mice %>%
 ## Diversity
 
 Richness and evenness matter.
-Shannon index, TODO: describe Shannon index and exp shannon.
 
 ```{r}
 mice %>% 
@@ -397,7 +396,7 @@ Practice making plots and doing simple statistical tests.
 
 What about richness?
 
-## Extension exercises
+# Extension exercises
 
 <details>
 
@@ -436,6 +435,15 @@ You can perform alpha diversity analysis: Try comparing the alpha diversity of t
 ```{r}
 #
 ```
+
+You can also try this stuff out on the Shao 2019 Birth cohort data.
+Don't worry if you don't try this now, as we will look at Shao 2019 dataset in 
+the next part of the lab.
+
+```{r}
+shao19
+```
+
 
 </details>
 
@@ -479,7 +487,7 @@ mice %>%
 **What to do:**
 
 1)  **Simple solution**: Ignore the problem. Whilst you can't interpret the richness of any individual sample as being correct, it is still usually valid to compare richness across groups of samples, as the readcount variation is only random noise, and should be uncorrelated with your grouping variable (but do check this).
-2)  **Harder solution**: Explore more rigorous methods like `breakaway` by Amy Willis and team. *TODO: INSERT LINK.*
+2)  **Harder solution**: Explore more rigorous methods like `breakaway` by Amy Willis and team. <https://www.frontiersin.org/articles/10.3389/fmicb.2019.02407/full>
 
 </details>
 
