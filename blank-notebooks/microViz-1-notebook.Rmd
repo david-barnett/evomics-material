@@ -1,0 +1,36 @@
+---
+title: "microViz - diversity notebook"
+author: Your name
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_notebook:
+    theme: paper
+    toc: true
+    toc_float: true
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 3
+    toc_float: 
+      collapsed: true
+---
+
+**Note from David** - the text below is automatically generated when you open a new rmd notebook.
+It reminds you how an R markdown notebook works. Feel free to delete it, then start writing your notes and code for this part of the microbiome analysis lab!
+
+____
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
