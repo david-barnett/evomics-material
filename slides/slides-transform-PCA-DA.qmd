@@ -26,6 +26,7 @@ library(phyloseq)
 library(microViz)
 ```
 
+
 ```{r}
 knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 120)
 options(width = 500)
@@ -35,21 +36,6 @@ mice <- readRDS(here::here("data/mice.rds"))
 ibd <- readRDS(here::here("data/ibd.rds"))
 ```
 
-## More Dissimilarity {.smaller transition="convex-in convex-out"}
-
-::: fragment
--   **Ecological & Phylogenetic dissimilarities / distances**:
-    -   Binary Jaccard
-    -   Bray Curtis
-    -   UniFrac (unweighted/weighted/generalized)
-    -   Others...
-:::
-
-::: fragment
--   **Euclidean distances**
-    -   Widely used in data science
-    -   Useful for microbiome abundance data??
-:::
 
 ## Datasets {transition="convex"}
 
@@ -72,6 +58,24 @@ ibd
 We'll primarily use (parts of) the shao19 data for demonstration.
 But during the exercises try exploring the other datasets too, if you want more practice.
 :::
+
+
+## More Dissimilarity {.smaller transition="convex-in convex-out"}
+
+::: fragment
+-   **Ecological & Phylogenetic dissimilarities / distances**:
+    -   Binary Jaccard
+    -   Bray Curtis
+    -   UniFrac (unweighted/weighted/generalized)
+    -   Others...
+:::
+
+::: fragment
+-   **Euclidean distances**
+    -   Widely used in data science
+    -   Useful for microbiome abundance data??
+:::
+
 
 ## Euclidean distances
 
