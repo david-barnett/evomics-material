@@ -1,6 +1,8 @@
 ---
 title: "Microbiome data analysis with microViz"
+subtitle: "Part 3: PCA & Differential Abundance"
 author: "David Barnett"
+date: "31 May 2022"
 format: 
   revealjs:
     theme: dark
@@ -14,7 +16,11 @@ format:
 editor: source
 ---
 
-# Part 3: PCA & Differential Abundance {transition="convex"}
+# Part 3: PCA & Differential Abundance {transition="convex" .smaller}
+
+A version of these slides originally presented at Evomics Workshop on Genomics 2022
+
+<https://evomics.org/2022-workshop-on-genomics-cesky-krumlov/>
 
 ```{r message=FALSE}
 library(seriation)

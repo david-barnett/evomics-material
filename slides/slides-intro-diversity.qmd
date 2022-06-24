@@ -1,6 +1,8 @@
 ---
 title: "Microbiome data analysis with microViz"
+subtitle: "Part 1: Diversity"
 author: "David Barnett"
+date: "31 May 2022"
 format: 
   revealjs:
     theme: dark
@@ -14,7 +16,11 @@ format:
 editor: source
 ---
 
-# Part 1: Diversity {transition="convex"}
+# Part 1: Diversity {transition="convex" .smaller}
+
+A version of these slides originally presented at Evomics Workshop on Genomics 2022
+
+<https://evomics.org/2022-workshop-on-genomics-cesky-krumlov/>
 
 ```{r message=FALSE}
 library(dplyr)
@@ -444,4 +450,4 @@ It will otherwise be less than the number of taxa actually in your ecosystem.
 
 -   Excellent resource for more diversity details: <https://www.davidzeleny.net/anadat-r/doku.php/en:div-ind>
 
--   Next topic after dinner: Dissimilarity and Ordination
+-   Next topic: [Dissimilarity and Ordination](https://david-barnett.github.io/evomics-material/slides/slides-dissimilarity)

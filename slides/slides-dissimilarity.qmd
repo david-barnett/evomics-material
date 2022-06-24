@@ -1,6 +1,8 @@
 ---
 title: "Microbiome data analysis with microViz"
+subtitle: "Part 2: Dissimilarity"
 author: "David Barnett"
+date: "31 May 2022"
 format: 
   revealjs:
     theme: dark
@@ -14,7 +16,11 @@ format:
 editor: source
 ---
 
-# Part 2: Dissimilarity {transition="convex"}
+# Part 2: Dissimilarity {transition="convex" .smaller}
+
+A version of these slides originally presented at Evomics Workshop on Genomics 2022
+
+<https://evomics.org/2022-workshop-on-genomics-cesky-krumlov/>
 
 ```{r message=FALSE}
 library(seriation)
@@ -718,7 +724,7 @@ Depends on what analysis method you are filtering for!
 -   differential abundance testing = stringent filtering, prevalence \>5%, \>10%? (last topic!)
 :::
 
-## Your turn {transition="convex"}
+## Your turn {transition="convex" .smaller}
 
 -   Link to exercises guidance: <https://david-barnett.github.io/evomics-material/exercises/microViz-2-dissimilarity-exercises>
 
@@ -726,5 +732,5 @@ Depends on what analysis method you are filtering for!
 
 -   Excellent book chapter by Anderson on PERMANOVA: <https://onlinelibrary.wiley.com/doi/full/10.1002/9781118445112.stat07841>
 
--   Last topics after break 8:15 to 8:45  - transformations, PCA, and differential abundance testing
+-   Last topics - [transformations, PCA, and differential abundance testing](https://david-barnett.github.io/evomics-material/slides/slides-transform-PCA-DA.html)
 
