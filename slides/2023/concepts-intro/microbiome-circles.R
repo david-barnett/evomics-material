@@ -22,11 +22,12 @@ bugProbs <- list(
   Y = c(00, 10, 10, 10, 10, 20, 30),
   Z = c(40, 30, 10, 10, 00, 10, 00)
 )
+bug_colours <- RColorBrewer::brewer.pal(n = 7, name = "Paired")
+names(bug_colours) <- c("one", "two", "three", "four", "five", "six", "seven")
 N <- 150 # number of circles per biome
 
 # Function to generate a biome by sampling N bugs vector with the given probabilities
-generate_biome <- function(probs, N) {
-  bugs <- c("one", "two", "three", "four", "five", "six", "seven")
+generate_biome <- function(probs, N, bugs = names(bug_colours)) {
   chr <- sample(bugs, size = N, replace = TRUE, prob = probs / sum(probs))
   return(factor(chr, levels = bugs))
 }
@@ -37,9 +38,10 @@ biomes <- as.data.frame(lapply(bugProbs, generate_biome, N = N))
 # Add a circle ID column
 biomes$circle <- seq_len(nrow(biomes))
 
-# Compute circle centre centres and radii ------
-centres <- list()
 
+# Compute inner circles' data ------------------------------------------------
+# Inner circles: centres and radii
+centres <- list()
 for (biome in names(bugProbs)) {
   centres[[biome]] <- biomes[, c(biome, "circle")]
 
@@ -55,9 +57,8 @@ for (biome in names(bugProbs)) {
   centres[[biome]] <- rename(centres[[biome]], y_centre = y, x_centre = x)
 }
 
-# Compute inner circles outline positions -----
+# Inner circles: outline positions
 circles <- list()
-
 for (biome in names(centres)) {
   circles[[biome]] <- circleLayoutVertices(
     layout = centres[[biome]], npoints = 30, idcol = "circle",
@@ -65,9 +66,9 @@ for (biome in names(centres)) {
   )
 }
 
-# Compute outer circle data ------
-# radius
-outlineRadius <- 1.2 * sqrt(N / pi)
+# Compute outer circle data -------------------------------------------------
+# Radius - estimated under assumption circle packing is perfect, then add a bit
+outlineRadius <- sqrt(N / pi) * 1.2
 
 # Calculate the angle between each pair of adjacent points on outer circle
 angle_step <- 2 * pi / 50
@@ -81,51 +82,100 @@ outer_circle <- data.frame(
   y_outer = outlineRadius * sin(angles)
 )
 
-# Create plots in list -------
+# Create biome plots in lists ------------------------------------------------
 
 # outer circle polygon geom
 geom_outer_poly <- geom_polygon(
-  data = outer_circle,
+  data = outer_circle, 
   mapping = aes(x = x_outer, y = y_outer),
-  colour = "grey15",
-  # fill = "transparent",
-  fill = "grey90",
-  linewidth = 2
+  colour = "grey15", fill = "grey90", linewidth = 2
 )
 
+# biome plot colour scheme
+scale_fill_biome <- scale_fill_manual(values = bug_colours, guide = NULL) 
+
+# biome plot themes
+theme_biome <- theme_void(base_size = 15) +
+  theme(
+    plot.tag.position = c(0.95, 0.95),
+    plot.tag = element_text(face = "bold"),
+    plot.margin = margin(12, 12, 12, 12)
+  )
+
+# biome plot coords
+coord_biome <- coord_fixed(
+  xlim = c(outlineRadius, -outlineRadius),
+  ylim = c(outlineRadius, -outlineRadius),
+  expand = TRUE, ratio = 1
+)
+
+# function to plot outline
+biome_plot_outline <- function(data) {
+  ggplot(data) +
+    scale_fill_biome +
+    coord_biome +
+    theme_biome +
+    labs(tag = biome) +
+    geom_outer_poly
+}
 
 plots_full <- list()
 for (biome in names(circles)) {
-  m <- 12 # plot margin in points
-
   plots_full[[biome]] <-
     centres[[biome]] %>%
     left_join(circles[[biome]], by = c(circle = "id")) %>%
-    ggplot() +
-    # outer circle
-    geom_outer_poly +
-    # inner circles
+    biome_plot_outline() +
+    # inner circles polygons geom
     geom_polygon(
       mapping = aes(x = x, y = y, fill = .data[[biome]], group = circle),
       colour = "grey35", linewidth = 0.2
-    ) +
-    scale_fill_brewer(palette = "Paired", guide = NULL) +
-    coord_fixed(
-      xlim = c(outlineRadius, -outlineRadius),
-      ylim = c(outlineRadius, -outlineRadius),
-      expand = TRUE, ratio = 1
-    ) +
-    theme_void(base_size = 15) +
-    theme(
-      plot.tag.position = c(0.95, 0.95),
-      plot.tag = element_text(face = "bold"),
-      plot.margin = margin(m, m, m, m)
-    ) +
-    labs(tag = biome)
+    )
+}
+
+plots_drop4 <- list()
+for (biome in names(circles)) {
+  plots_drop4[[biome]] <-
+    centres[[biome]] %>%
+    dplyr::filter(!.data[[biome]] %in% c("four")) %>% 
+    left_join(circles[[biome]], by = c(circle = "id")) %>%
+    biome_plot_outline() +
+    # inner circles polygons geom
+    geom_polygon(
+      mapping = aes(x = x, y = y, fill = .data[[biome]], group = circle),
+      colour = "grey35", linewidth = 0.2
+    )
+}
+
+plots_drop43 <- list()
+for (biome in names(circles)) {
+  plots_drop43[[biome]] <-
+    centres[[biome]] %>%
+    dplyr::filter(!.data[[biome]] %in% c("four", "three")) %>% 
+    left_join(circles[[biome]], by = c(circle = "id")) %>%
+    biome_plot_outline() +
+    # inner circles polygons geom
+    geom_polygon(
+      mapping = aes(x = x, y = y, fill = .data[[biome]], group = circle),
+      colour = "grey35", linewidth = 0.2
+    )
+}
+
+plots_drop432 <- list()
+for (biome in names(circles)) {
+  plots_drop432[[biome]] <-
+    centres[[biome]] %>%
+    dplyr::filter(!.data[[biome]] %in% c("four", "three", "two")) %>% 
+    left_join(circles[[biome]], by = c(circle = "id")) %>%
+    biome_plot_outline() +
+    # inner circles polygons geom
+    geom_polygon(
+      mapping = aes(x = x, y = y, fill = .data[[biome]], group = circle),
+      colour = "grey35", linewidth = 0.2
+    )
 }
 
 
-# Save plots in patchwork grids -------------------------------------------
+# Save biome plots in patchwork grids ----------------------------------------
 
 ABC_design <- "
   12
@@ -141,10 +191,42 @@ ggsave(
   filename = file.path(plotdir, "biome-circles/ABC.png"),
   device = "png", width = 4, height = 4, units = "in"
 )
+# dropping some bugs - for when "moving" them to the dotplot
+ggsave(
+  plot = wrap_plots(plots_drop4[1:3], design = ABC_design),
+  filename = file.path(plotdir, "biome-circles/ABC-drop4.png"),
+  device = "png", width = 4, height = 4, units = "in"
+)
+ggsave(
+  plot = wrap_plots(plots_drop43[1:3], design = ABC_design),
+  filename = file.path(plotdir, "biome-circles/ABC-drop43.png"),
+  device = "png", width = 4, height = 4, units = "in"
+)
+ggsave(
+  plot = wrap_plots(plots_drop432[1:3], design = ABC_design),
+  filename = file.path(plotdir, "biome-circles/ABC-drop432.png"),
+  device = "png", width = 4, height = 4, units = "in"
+)
 
 ggsave(
   plot = wrap_plots(plots_full, design = ABCXYZ_design), 
   filename = file.path(plotdir, "biome-circles/ABCXYZ.png"),
+  device = "png", width = 4, height = 6, units = "in"
+)
+# dropping some bugs - for when "moving" them to the dotplot
+ggsave(
+  plot = wrap_plots(plots_drop4, design = ABCXYZ_design),
+  filename = file.path(plotdir, "biome-circles/ABCXYZ-drop4.png"),
+  device = "png", width = 4, height = 6, units = "in"
+)
+ggsave(
+  plot = wrap_plots(plots_drop43, design = ABCXYZ_design),
+  filename = file.path(plotdir, "biome-circles/ABCXYZ-drop43.png"),
+  device = "png", width = 4, height = 6, units = "in"
+)
+ggsave(
+  plot = wrap_plots(plots_drop432, design = ABCXYZ_design),
+  filename = file.path(plotdir, "biome-circles/ABCXYZ-drop432.png"),
   device = "png", width = 4, height = 6, units = "in"
 )
 
@@ -306,3 +388,57 @@ write_dist_tab_png(jacc_table_grob, file = "binary_jacc_distmat.png")
 write_dist_tab_png(rclr_table_grob, file = "rclr_euclid_distmat.png")
 
 
+# DA dotplots -------------------------------------------------------------
+
+dotplots <- biomes[, LETTERS[1:3], drop = FALSE] %>% 
+  pivot_longer(cols = everything(), names_to = "biome", values_to = "bug") %>% 
+  dplyr::filter(bug %in% c("four", "three", "two")) %>% 
+  mutate(bug = factor(bug, levels = c("four", "three", "two"))) %>% 
+  ggplot(aes(x = biome, fill = bug)) +
+  facet_wrap(vars(bug), nrow = 1) +
+  geom_dotplot(binwidth = 4/10, stackratio = 0.65, colour = "grey25") +
+  scale_fill_biome +
+  scale_y_continuous(limits = c(0, NA), expand = c(0.005, 0)) +
+  theme_classic() +
+  theme(
+    axis.line.y.left = element_blank(),
+    axis.ticks.y.left = element_blank(),
+    axis.text.y.left = element_blank(),
+    axis.title = element_blank(),
+    axis.text.x = element_text(size = 28, face = "bold", color = "black"),
+    panel.background = element_rect(fill = "transparent", colour = "transparent"),
+    plot.background = element_rect(fill = "transparent", colour = "transparent")
+  )
+
+ggsave(
+  plot = dotplots, bg = "transparent",
+  filename = file.path(plotdir, "dotplots.png"),
+  width = 5, height = 7, units = "in", device = "png", dpi = 300
+)
+
+dotplotsXYZ <- biomes[, c("X", "Y", "Z"), drop = FALSE] %>% 
+  pivot_longer(cols = everything(), names_to = "biome", values_to = "bug") %>% 
+  dplyr::filter(bug %in% c("four", "three", "two")) %>% 
+  mutate(bug = factor(bug, levels = c("four", "three", "two"))) %>% 
+  ggplot(aes(x = biome, fill = bug)) +
+  facet_wrap(vars(bug), nrow = 1) +
+  geom_dotplot(binwidth = 4/10, stackratio = 0.65, colour = "grey25") +
+  scale_fill_biome +
+  scale_y_continuous(limits = c(0, NA), expand = c(0.005, 0)) +
+  theme_classic() +
+  theme(
+    axis.line.y.left = element_blank(),
+    axis.ticks.y.left = element_blank(),
+    axis.text.y.left = element_blank(),
+    axis.title = element_blank(),
+    axis.text.x = element_text(size = 28, face = "bold", color = "black"),
+    panel.background = element_rect(fill = "transparent", colour = "transparent"),
+    plot.background = element_rect(fill = "transparent", colour = "transparent")
+  )
+
+ggsave(
+  plot = dotplotsXYZ, bg = "transparent",
+  filename = file.path(plotdir, "dotplotsXYZ.png"),
+  width = 5, height = 7, units = "in", device = "png", dpi = 300
+)
+  
