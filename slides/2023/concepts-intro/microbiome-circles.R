@@ -1,3 +1,4 @@
+library(vegan)
 library(tidyverse)
 library(packcircles)
 library(patchwork)
@@ -6,6 +7,9 @@ library(grid)
 library(gridExtra)
 library(gtable)
 set.seed(1)
+
+# set plotting output dir path
+plotdir <- here::here("slides/2023/concepts-intro")
 
 # Simulate biomes ------
 
@@ -38,16 +42,16 @@ centres <- list()
 
 for (biome in names(bugProbs)) {
   centres[[biome]] <- biomes[, c(biome, "circle")]
-  
+
   # Specify subtly varying sizes, to make the circle layout look more organic
   centres[[biome]]$size <- rnorm(n = nrow(biomes), mean = 1, sd = 0.1)
-  
+
   # Compute layout
   centres[[biome]] <- as_tibble(cbind(
     centres[[biome]],
     circleProgressiveLayout(x = centres[[biome]], sizecol = "size")
   ))
-  
+  # more explanatory names
   centres[[biome]] <- rename(centres[[biome]], y_centre = y, x_centre = x)
 }
 
@@ -79,23 +83,27 @@ outer_circle <- data.frame(
 
 # Create plots in list -------
 
-plots <- list()
+# outer circle polygon geom
+geom_outer_poly <- geom_polygon(
+  data = outer_circle,
+  mapping = aes(x = x_outer, y = y_outer),
+  colour = "grey15",
+  # fill = "transparent",
+  fill = "grey90",
+  linewidth = 2
+)
+
+
+plots_full <- list()
 for (biome in names(circles)) {
   m <- 12 # plot margin in points
-  
-  plots[[biome]] <-
+
+  plots_full[[biome]] <-
     centres[[biome]] %>%
     left_join(circles[[biome]], by = c(circle = "id")) %>%
     ggplot() +
     # outer circle
-    geom_polygon(
-      data = outer_circle,
-      mapping = aes(x = x_outer, y = y_outer),
-      colour = "grey15",
-      # fill = "transparent",
-      fill = "grey90",
-      linewidth = 2
-    ) +
+    geom_outer_poly +
     # inner circles
     geom_polygon(
       mapping = aes(x = x, y = y, fill = .data[[biome]], group = circle),
@@ -107,48 +115,43 @@ for (biome in names(circles)) {
       ylim = c(outlineRadius, -outlineRadius),
       expand = TRUE, ratio = 1
     ) +
-    labs(tag = biome) +
     theme_void(base_size = 15) +
     theme(
-      plot.tag.position = c(0.95, 0.95), 
+      plot.tag.position = c(0.95, 0.95),
       plot.tag = element_text(face = "bold"),
       plot.margin = margin(m, m, m, m)
-    )
+    ) +
+    labs(tag = biome)
 }
 
 
 # Save plots in patchwork grids -------------------------------------------
 
-ABC <- wrap_plots(
-  plots[1:3],
-  design = "
+ABC_design <- "
   12
-  #3
-  "
-)
+  #3"
 
-ggsave(
-  filename = here::here("slides/2023/concepts-intro/microbiome-circles-ABC.png"),
-  plot = ABC, device = "png", width = 4, height = 4, units = "in"
-)
-
-ABCXYZ <- wrap_plots(
-  plots,
-  design = "
+ABCXYZ_design <- "
   14
   25
   36"
+
+ggsave(
+  plot = wrap_plots(plots_full[1:3], design = ABC_design),
+  filename = file.path(plotdir, "biome-circles/ABC.png"),
+  device = "png", width = 4, height = 4, units = "in"
 )
 
 ggsave(
-  filename = here::here("slides/2023/concepts-intro/microbiome-circles-ABCXYZ.png"),
-  plot = ABCXYZ, device = "png", width = 4, height = 6, units = "in"
+  plot = wrap_plots(plots_full, design = ABCXYZ_design), 
+  filename = file.path(plotdir, "biome-circles/ABCXYZ.png"),
+  device = "png", width = 4, height = 6, units = "in"
 )
 
 # Save a little 3-circle legend -------------------------------------------
 circle_data <- data.frame(
   circle_id = 1:3,
-  y_center = c(0.3, 0.5, 0.7)
+  y_center = c(0.7, 0.5, 0.3)
 )
 
 # Assign colors to each circle
@@ -158,7 +161,7 @@ names(circle_colors) <- circle_data$circle_id
 # Create the ggplot image
 circle_plot <- ggplot(data = circle_data) +
   geom_point(
-    aes(x = 1, y = y_center, fill = factor(circle_id)), 
+    aes(x = 1, y = y_center, fill = factor(circle_id)),
     shape = 21, size = 10, stroke = 0.5, colour = "grey35"
   ) +
   scale_fill_manual(values = circle_colors, guide = NULL) +
@@ -168,16 +171,15 @@ circle_plot <- ggplot(data = circle_data) +
 
 # Save the ggplot image as a file
 ggsave(
-  filename = here::here("slides/2023/concepts-intro/three_circles_legend.png"), 
+  filename = file.path(plotdir, "biome-circles/three_circles_legend.png"),
   plot = circle_plot, width = 0.5, height = 2, units = "in"
 )
 
 # Compute diversity, richness and evenness --------------------------------
 
-# Function to compute the Shannon diversity index
+# Function to compute the (effective) Shannon diversity index
 shannon_diversity <- function(biome, exp = TRUE) {
-  b <- droplevels(biome) # zeroes for some factor levels messes it up
-  counts <- table(b)
+  counts <- table(droplevels(biome))
   proportions <- counts / sum(counts)
   diversity <- -sum(proportions * log(proportions))
   if (isTRUE(exp)) diversity <- exp(diversity)
@@ -201,7 +203,7 @@ richness <- sapply(biomes[, c("A", "B", "C")], observed_richness)
 evenness <- mapply(pielou_evenness, richness, diversity)
 
 # Combine the results into a data frame
-diversity_table <- data.frame(
+diversity_table <- tibble(
   Metric = c("Richness", "Evenness", "Diversity"),
   A = c(richness["A"], evenness["A"], diversity["A"]),
   B = c(richness["B"], evenness["B"], diversity["B"]),
@@ -210,7 +212,7 @@ diversity_table <- data.frame(
 
 # diversity_table[-1] <- round(diversity_table[-1], digits = 1)
 diversity_table[-1] <- lapply(
-  X = diversity_table[-1], 
+  X = diversity_table[-1],
   FUN = function(x) formatC(x, format = "f", digits = 1, flag = "#")
 )
 
@@ -221,36 +223,86 @@ diversity_table[-1] <- lapply(
 # https://cran.r-project.org/web/packages/gridExtra/vignettes/tableGrob.html
 
 # Create a table with the rounded results data frame
-table_image <- tableGrob(
-  d = diversity_table, rows = NULL, 
-  theme = ttheme_minimal(base_size = 20, padding = unit(c(13, 10), "mm"))
-)
-# Create separator grobs
-Vseparators <- replicate(
-  n = ncol(table_image), 
-  expr = segmentsGrob(x1 = unit(0, "npc"), gp=gpar(lty = 2)),
-  simplify=FALSE
-)
-Hseparators <- replicate(
-  n = nrow(table_image), 
-  expr = segmentsGrob(y1 = unit(0, "npc"), gp = gpar(lty = 2)),
-  simplify = FALSE
-)
+div_tab_theme <- ttheme_minimal(base_size = 20, padding = unit(c(13, 10), "mm"))
 
-# Add separator grobs
-table_image <- gtable_add_grob(
-  x = table_image, grobs = Vseparators[1:2],
-  t = 2, b = nrow(table_image), l = seq_len(2) + 2
-)
-table_image <- gtable_add_grob(
-  x = table_image, grobs = Hseparators[1:2],
-  t = seq_len(2) + 1, l = 2, r = ncol(table_image)
-)
+# Create separator grobs
+Vline <- segmentsGrob(x1 = 0, gp = gpar(lty = 2))
+Hline <- segmentsGrob(y1 = 0, gp = gpar(lty = 2))
+
+div_tab_grob <- diversity_table %>% 
+  tableGrob(theme = div_tab_theme, rows = NULL) %>% 
+  gtable_add_grob(grobs = list(Vline, Vline), t = 2, b = 4, l = 3:4) %>% 
+  gtable_add_grob(grobs = list(Hline, Hline), t = 2:3, l = 2, r = 4) 
+
+# remove "Metric" text
+div_tab_grob$grobs[[1]]$label <- "" 
 
 # Save the table as an image
 png(
-  filename = here::here("slides/2023/concepts-intro/results_table.png"),
+  filename = file.path(plotdir, "diversity_table.png"),
   width = 4, height = 2.5, units = "in", res = 300
 )
-grid::grid.draw(table_image)
+grid::grid.draw(div_tab_grob)
 dev.off()
+
+# Compute dissimilarities --------------------------------
+
+# Create a count matrix for each relevant biome
+biomes_count_matrix <- t(sapply(c("A", "B", "C"), function(col) {
+  as.matrix(table(as.factor(biomes[[col]])))
+}))
+colnames(biomes_count_matrix) <- levels(as.factor(biomes$A))
+
+# Compute distances
+bray_curtis <- vegdist(biomes_count_matrix, method = "bray")
+binary_jacc <- vegdist(biomes_count_matrix, method = "jaccard", binary = TRUE)
+rclr_euclid <- vegdist(biomes_count_matrix, method = "robust.aitchison")
+
+# Write dissimilarity tables as images ----------------------------------------
+
+# Round the distances and format for printing
+round_dists <- function(x) formatC(x, format = "f", digits = 2)
+bray_curtis_mat <- apply(as.matrix(bray_curtis), MARGIN = 2, FUN = round_dists)
+binary_jacc_mat <- apply(as.matrix(binary_jacc), MARGIN = 2, FUN = round_dists)
+rclr_euclid_mat <- apply(as.matrix(rclr_euclid), MARGIN = 2, FUN = round_dists)
+
+# Specify distance table grob theme
+dist_tab_theme <- ttheme_minimal(
+  base_size = 20, padding = unit(c(10, 10), "mm"),
+  rowhead = list(fg_params = list(fontface = "bold", x = 0.5))
+)
+
+# Create table_grobs with the Bray-Curtis and BinaryJaccard dist matrices
+bray_table_grob <- tableGrob(d = bray_curtis_mat, theme = dist_tab_theme)
+jacc_table_grob <- tableGrob(d = binary_jacc_mat, theme = dist_tab_theme)
+rclr_table_grob <- tableGrob(d = rclr_euclid_mat, theme = dist_tab_theme)
+
+# Create separator grobs
+Vline <- segmentsGrob(x1 = 0, gp = gpar(lty = 2))
+Hline <- segmentsGrob(y1 = 0, gp = gpar(lty = 2))
+
+# Add separator grobs
+bray_table_grob <- bray_table_grob %>%
+  gtable_add_grob(grobs = list(Vline, Vline), t = 2, b = 4, l = 3:4) %>%
+  gtable_add_grob(grobs = list(Hline, Hline), t = 2:3, l = 2, r = 4)
+
+jacc_table_grob <- jacc_table_grob %>%
+  gtable_add_grob(grobs = list(Vline, Vline), t = 2, b = 4, l = 3:4) %>%
+  gtable_add_grob(grobs = list(Hline, Hline), t = 2:3, l = 2, r = 4)
+
+rclr_table_grob <- rclr_table_grob %>%
+  gtable_add_grob(grobs = list(Vline, Vline), t = 2, b = 4, l = 3:4) %>%
+  gtable_add_grob(grobs = list(Hline, Hline), t = 2:3, l = 2, r = 4)
+
+# Save the tables as images
+write_dist_tab_png <- function(grob, file) {
+  f <- file.path(plotdir, file)
+  png(filename = f, width = 4, height = 4, units = "in", res = 300)
+  grid::grid.draw(grob)
+  dev.off()
+}
+write_dist_tab_png(bray_table_grob, file = "bray_curtis_distmat.png")
+write_dist_tab_png(jacc_table_grob, file = "binary_jacc_distmat.png")
+write_dist_tab_png(rclr_table_grob, file = "rclr_euclid_distmat.png")
+
+
