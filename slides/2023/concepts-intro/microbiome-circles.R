@@ -128,7 +128,7 @@ ABC <- wrap_plots(
 )
 
 ggsave(
-  filename = here::here("slides/2023/microbiome-circles-ABC.png"),
+  filename = here::here("slides/2023/concepts-intro/microbiome-circles-ABC.png"),
   plot = ABC, device = "png", width = 4, height = 4, units = "in"
 )
 
@@ -141,7 +141,7 @@ ABCXYZ <- wrap_plots(
 )
 
 ggsave(
-  filename = here::here("slides/2023/microbiome-circles-ABCXYZ.png"),
+  filename = here::here("slides/2023/concepts-intro/microbiome-circles-ABCXYZ.png"),
   plot = ABCXYZ, device = "png", width = 4, height = 6, units = "in"
 )
 
@@ -168,10 +168,9 @@ circle_plot <- ggplot(data = circle_data) +
 
 # Save the ggplot image as a file
 ggsave(
-  filename = here::here("slides/2023/three_circles_legend.png"), 
+  filename = here::here("slides/2023/concepts-intro/three_circles_legend.png"), 
   plot = circle_plot, width = 0.5, height = 2, units = "in"
 )
-
 
 # Compute diversity, richness and evenness --------------------------------
 
@@ -250,7 +249,7 @@ table_image <- gtable_add_grob(
 
 # Save the table as an image
 png(
-  filename = here::here("slides/2023/results_table.png"),
+  filename = here::here("slides/2023/concepts-intro/results_table.png"),
   width = 4, height = 2.5, units = "in", res = 300
 )
 grid::grid.draw(table_image)
