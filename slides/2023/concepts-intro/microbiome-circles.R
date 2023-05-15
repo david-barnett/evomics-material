@@ -38,30 +38,44 @@ biomes <- as.data.frame(lapply(bugProbs, generate_biome, N = N))
 # Add a circle ID column
 biomes$circle <- seq_len(nrow(biomes))
 
+biomesSub <- sample_n(biomes, size = 75, replace = FALSE)
 
 # Compute inner circles' data ------------------------------------------------
 # Inner circles: centres and radii
 centres <- list()
+centresSub <- list()
 for (biome in names(bugProbs)) {
   centres[[biome]] <- biomes[, c(biome, "circle")]
+  centresSub[[biome]] <- biomesSub[, c(biome, "circle")]
 
   # Specify subtly varying sizes, to make the circle layout look more organic
   centres[[biome]]$size <- rnorm(n = nrow(biomes), mean = 1, sd = 0.1)
-
-  # Compute layout
-  centres[[biome]] <- as_tibble(cbind(
-    centres[[biome]],
-    circleProgressiveLayout(x = centres[[biome]], sizecol = "size")
-  ))
-  # more explanatory names
+  # Subsetted version, fewer circles
+  centresSub[[biome]]$size <- rnorm(n = nrow(biomesSub), mean = 1, sd = 0.1)
+  
+  # Compute layouts
+  layout <- circleProgressiveLayout(x = centres[[biome]], sizecol = "size")
+  layoutSub <- circleProgressiveLayout(x = centresSub[[biome]], sizecol = "size")
+  
+  # Add layouts to bug name data
+  centres[[biome]] <- as_tibble(cbind(centres[[biome]], layout))
+  centresSub[[biome]] <- as_tibble(cbind(centresSub[[biome]], layoutSub))
+  
+  # more explanatory variable names
   centres[[biome]] <- rename(centres[[biome]], y_centre = y, x_centre = x)
+  centresSub[[biome]] <- rename(centresSub[[biome]], y_centre = y, x_centre = x)
 }
 
 # Inner circles: outline positions
 circles <- list()
+circlesSub <- list()
 for (biome in names(centres)) {
   circles[[biome]] <- circleLayoutVertices(
     layout = centres[[biome]], npoints = 30, idcol = "circle",
+    xysizecols = c("x_centre", "y_centre", "radius")
+  )
+  circlesSub[[biome]] <- circleLayoutVertices(
+    layout = centresSub[[biome]], npoints = 30, idcol = "circle",
     xysizecols = c("x_centre", "y_centre", "radius")
   )
 }
@@ -124,6 +138,19 @@ for (biome in names(circles)) {
   plots_full[[biome]] <-
     centres[[biome]] %>%
     left_join(circles[[biome]], by = c(circle = "id")) %>%
+    biome_plot_outline() +
+    # inner circles polygons geom
+    geom_polygon(
+      mapping = aes(x = x, y = y, fill = .data[[biome]], group = circle),
+      colour = "grey35", linewidth = 0.2
+    )
+}
+
+plots_sub <- list()
+for (biome in names(circlesSub)) {
+  plots_sub[[biome]] <-
+    centresSub[[biome]] %>%
+    left_join(circlesSub[[biome]], by = c(circle = "id")) %>%
     biome_plot_outline() +
     # inner circles polygons geom
     geom_polygon(
@@ -209,24 +236,30 @@ ggsave(
 )
 
 ggsave(
-  plot = wrap_plots(plots_full, design = ABCXYZ_design), 
+  plot = wrap_plots(plots_full[1:6], design = ABCXYZ_design), 
   filename = file.path(plotdir, "biome-circles/ABCXYZ.png"),
   device = "png", width = 4, height = 6, units = "in"
 )
 # dropping some bugs - for when "moving" them to the dotplot
 ggsave(
-  plot = wrap_plots(plots_drop4, design = ABCXYZ_design),
+  plot = wrap_plots(plots_drop4[1:6], design = ABCXYZ_design),
   filename = file.path(plotdir, "biome-circles/ABCXYZ-drop4.png"),
   device = "png", width = 4, height = 6, units = "in"
 )
 ggsave(
-  plot = wrap_plots(plots_drop43, design = ABCXYZ_design),
+  plot = wrap_plots(plots_drop43[1:6], design = ABCXYZ_design),
   filename = file.path(plotdir, "biome-circles/ABCXYZ-drop43.png"),
   device = "png", width = 4, height = 6, units = "in"
 )
 ggsave(
-  plot = wrap_plots(plots_drop432, design = ABCXYZ_design),
+  plot = wrap_plots(plots_drop432[1:6], design = ABCXYZ_design),
   filename = file.path(plotdir, "biome-circles/ABCXYZ-drop432.png"),
+  device = "png", width = 4, height = 6, units = "in"
+)
+
+ggsave(
+  plot = wrap_plots(c(plots_full[4:6], plots_sub[4:6]), design = ABCXYZ_design),
+  filename = file.path(plotdir, "biome-circles/XYZ-XYZsub.png"),
   device = "png", width = 4, height = 6, units = "in"
 )
 
@@ -442,3 +475,72 @@ ggsave(
   width = 5, height = 7, units = "in", device = "png", dpi = 300
 )
   
+# Compositions barcharts -----------------------------------------------------
+
+# Counts data for original and subset biomes 
+XYZcounts <- as.data.frame(rbind(
+  t(sapply(X = biomes[, c("X", "Y", "Z")], FUN = table)),
+  t(sapply(X = biomesSub[, c("X", "Y", "Z")], FUN = table))
+))
+XYZcounts$Biomass <- rep(c("High", "Low"), each = 3)
+XYZcounts$sample <- rep(c("X", "Y", "Z"), times = 2)
+
+# Make barplots
+theme_bars <- theme_minimal() +
+  theme(
+    text = element_text(size = 12, face = "bold"),
+    panel.grid.major.x = element_blank(),
+    panel.spacing = unit(0.2, "in"), 
+    strip.clip = "off",
+    strip.placement = "outside",
+    strip.text = element_text(size = 14, face = "bold"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+# Make counts barplot
+plotXYZcounts <- XYZcounts %>% 
+  pivot_longer(!c(Biomass, sample), names_to = "Taxon", values_to = "Counts") %>% 
+  mutate(Taxon = factor(Taxon, levels = rev(names(bug_colours)))) %>% 
+  ggplot() +
+  facet_grid(cols = vars(sample), scales = "free", switch = "x") +
+  geom_col(
+    mapping = aes(Biomass, Counts, fill = Taxon), 
+    width = 0.7, colour = "grey35", linewidth = 0.3
+  ) +
+  scale_fill_biome +
+  scale_y_continuous(limits = c(0, 160), expand = c(0.005, 0)) +
+  theme_bars
+
+# Convert to compositions
+XYZcompositions <- XYZcounts %>% 
+  mutate(total = rowSums(pick(where(is.numeric)))) %>% 
+  mutate(across(where(is.numeric), function(x) x / total))
+
+# Make compositions barplot
+plotXYZcomp <- XYZcompositions %>% 
+  select(!total) %>% 
+  pivot_longer(!c(Biomass, sample), names_to = "Taxon", values_to = "Proportion") %>% 
+  mutate(Taxon = factor(Taxon, levels = rev(names(bug_colours)))) %>% 
+  ggplot() +
+  facet_grid(cols = vars(sample), scales = "free", switch = "x") +
+  geom_col(
+    mapping = aes(Biomass, Proportion, fill = Taxon), 
+    width = 0.7, colour = "grey35", linewidth = 0.3
+  ) +
+  scale_fill_biome +
+  scale_y_continuous(limits = c(0, 1.025), expand = c(0.005, 0)) +
+  theme_bars
+
+ggsave(
+  plot = plotXYZcounts, bg = "transparent",
+  filename = file.path(plotdir, "XYZcounts.png"),
+  width = 3.7, height = 3.3, units = "in", device = "png", dpi = 300
+)
+
+ggsave(
+  plot = plotXYZcomp, bg = "transparent",
+  filename = file.path(plotdir, "XYZcompositions.png"),
+  width = 3.7, height = 3.3, units = "in", device = "png", dpi = 300
+)
+
