@@ -15,3 +15,10 @@ install.packages(
 install.packages("ggraph") # for taxatree_plots()
 install.packages("DT") # for tax_fix_interactive()
 install.packages("corncob") # for example datasets and beta binomial models
+install.packages("ggtext") # for rotated text on ord_plot PCA figures
+install.packages("GUniFrac") # for (generalised) unifrac distances
+
+# just to be safe
+install.packages("tidyverse")
+install.packages("patchwork")
+install.packages("remotes") # for emergency github installs
