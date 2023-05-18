@@ -263,32 +263,42 @@ ggsave(
   device = "png", width = 4, height = 6, units = "in"
 )
 
-# Save a little 3-circle legend -------------------------------------------
-circle_data <- data.frame(
-  circle_id = 1:3,
-  y_center = c(0.7, 0.5, 0.3)
-)
+# Save a little circle legends -------------------------------------------
 
-# Assign colors to each circle
-circle_colors <- RColorBrewer::brewer.pal(3, "Paired")
-names(circle_colors) <- circle_data$circle_id
+# Function to create and save circle legend
+save_circle_legend <- function(n, filename, y_range = c(0, 1)) {
+  # Calculate the y_values based on the provided range
+  y_values <- rev(seq(y_range[1], y_range[2], length.out = n))
+  
+  # Save a n-circle legend
+  circle_data <- data.frame(id = 1:n, y = y_values)
+  
+  # Assign colors to each circle
+  circle_colors <- RColorBrewer::brewer.pal(n, "Paired")
+  names(circle_colors) <- 1:n
+  
+  # Create the ggplot image for n circles
+  circle_plot <- ggplot(data = circle_data) +
+    geom_point(
+      aes(x = 1, y = y, fill = factor(id)),
+      shape = 21, size = 10, stroke = 0.5, colour = "grey35"
+    ) +
+    scale_fill_manual(values = circle_colors, guide = NULL) +
+    scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = NULL) +
+    theme_void() +
+    theme(plot.margin = margin(0, 0, 0, 0))
+  
+  # Save the ggplot image for n circles as a file
+  ggsave(
+    filename = file.path(plotdir, "biome-circles", filename),
+    plot = circle_plot, width = 0.5, height = 0.5 + (n / 2), units = "in"
+  )
+}
 
-# Create the ggplot image
-circle_plot <- ggplot(data = circle_data) +
-  geom_point(
-    aes(x = 1, y = y_center, fill = factor(circle_id)),
-    shape = 21, size = 10, stroke = 0.5, colour = "grey35"
-  ) +
-  scale_fill_manual(values = circle_colors, guide = NULL) +
-  scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = NULL) +
-  theme_void() +
-  theme(plot.margin = margin(0, 0, 0, 0))
+# Save legends
+save_circle_legend(3, "three_circles_legend.png", y_range = c(0.3, 0.7))
+save_circle_legend(7, "seven_circles_legend.png", y_range = c(0.2, 0.8))
 
-# Save the ggplot image as a file
-ggsave(
-  filename = file.path(plotdir, "biome-circles/three_circles_legend.png"),
-  plot = circle_plot, width = 0.5, height = 2, units = "in"
-)
 
 # Compute diversity, richness and evenness --------------------------------
 
