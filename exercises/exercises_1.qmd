@@ -45,9 +45,13 @@ The [microViz website](https://david-barnett.github.io/microViz/) has help pages
 
 ------------------------------------------------------------------------
 
-## Setup
+## Setup ⚙️
 
-Load the R packages we will be using:
+1. Open your RStudio server instance (or local RStudio if you prefer)
+2. Find the microbiome analysis folder
+3. Click on the .Rproj file to open an RStudio project (recommended)
+4. Open a new R script / notebook / quarto doc
+5. Load the R packages we will be using:
 
 ```{r message=FALSE}
 library(tidyverse)
@@ -56,9 +60,9 @@ library(microViz)
 library(shiny)
 ```
 
-Get the two example datasets:
+6. Explore some microbiomes
 
--   We'll primarily use these two datasets in these exercises
+-   We'll use two example datasets in this evening's exercises
 -   Both contain gut microbiome taxonomic composition data, from stool samples
 -   The first is from a 2019 study of antibiotic administration in mice
 -   The mouse antibiotics study used 16S rRNA gene amplicon sequencing
@@ -83,7 +87,7 @@ data("shao19", package = "microViz")
 -   All analysis approaches we'll learn this evening can be applied to both kinds of data.
 -   These methods are also appropriate for microbiome data from other environments, not just the gut microbiota! (microViz has been used by groups analysing microbiomes associated with Antarctic sponges, and Kiwi birds, amongst other things.)
 
-## Intro to phyloseq
+## Intro to phyloseq 🦠
 
 We will start with some processed microbiota data from the mouse study.
 
@@ -374,6 +378,7 @@ allMice
 ```{r}
 #| code-fold: true
 #| code-summary: Code to set up a grid layout using cage numbers and letters
+#| fig-width: 7
 
 # Convert sample timings to a factor variable, for correct temporal ordering. 
 allMice <- allMice %>% 
@@ -569,7 +574,7 @@ miceShannonDf %>%
   theme_bw()
 ```
 
--   The mice exposed to Ampicillin (alone or with Metronidazole) appear to have higher diversity at this day 7 sample!
+-   The mice exposed to Ampicillin (± Metronidazole) appear to have higher diversity at this day 7 sample!
 
 ```{r}
 # A simple statistical test supports this assertion
@@ -578,7 +583,8 @@ miceShannonDf %>%
   wilcox.test(formula = Exp_Shannon ~ Ampicillin, data = .)
 ```
 
-You can apply more complex statistical tests if you like, e.g. adjusting for covariates with linear regression, using `lm()`
+- You can apply more complex statistical tests if you like
+- e.g. adjusting for covariates with linear regression, using `lm()`
 
 ```{r}
 allMice %>%
@@ -590,6 +596,8 @@ allMice %>%
   summary()
 ```
 
+**Final activities for part 1:**
+
 -   Try making other diversity comparisons for yourself?
 -   Consider comparing ASV-level diversity?
 -   Does virus exposure influence diversity?
@@ -598,7 +606,9 @@ allMice %>%
 
 ------------------------------------------------------------------------
 
-## Further information
+## Break Time! ☕️ ⌚️
+
+### You want more about diversity?
 
 ::: {.callout-note collapse="true"}
 ### Click here for additional notes on richness and readcount
@@ -649,11 +659,10 @@ ibd <- corncob::ibd_phylo %>%
   ps_mutate(disease = ibd == "ibd", ibd = NULL) # adds disease state indicator variable
 ```
 
--   `ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data, from a 2012 study of Inflammatory Bowel Disease in children and young adults.
-
--   It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs".
-
--   Have a look at the data, like we did before for the `mice` dataset.
+-   `ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data 
+-   It is from a 2012 study of Inflammatory Bowel Disease in children and young adults
+-   It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs"
+-   Have a look at the data, like we did before for the `mice` dataset
 
 ```{r}
 ibd
@@ -663,7 +672,8 @@ ibd
 #
 ```
 
--   You can perform alpha diversity analysis: Try comparing the alpha diversity of the IBD patients against the healthy controls.
+-   You can perform alpha diversity analysis: 
+-   Try comparing the alpha diversity of the IBD patients against the healthy controls.
 
 ```{r}
 #

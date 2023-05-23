@@ -114,8 +114,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
    
   <ul>
   <li><a href="#instructions" id="toc-instructions" class="nav-link active" data-scroll-target="#instructions">Instructions 👋</a></li>
-  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
-  <li><a href="#intro-to-phyloseq" id="toc-intro-to-phyloseq" class="nav-link" data-scroll-target="#intro-to-phyloseq">Intro to phyloseq</a>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup ⚙️</a></li>
+  <li><a href="#intro-to-phyloseq" id="toc-intro-to-phyloseq" class="nav-link" data-scroll-target="#intro-to-phyloseq">Intro to phyloseq 🦠</a>
   <ul>
   <li><a href="#filling-gaps-in-the-taxonomy-table" id="toc-filling-gaps-in-the-taxonomy-table" class="nav-link" data-scroll-target="#filling-gaps-in-the-taxonomy-table">Filling gaps in the taxonomy table</a></li>
   </ul></li>
@@ -131,7 +131,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#diversity" id="toc-diversity" class="nav-link" data-scroll-target="#diversity">Diversity</a></li>
   </ul></li>
   <li><a href="#comparing-diversity" id="toc-comparing-diversity" class="nav-link" data-scroll-target="#comparing-diversity">Comparing Diversity</a></li>
-  <li><a href="#further-information" id="toc-further-information" class="nav-link" data-scroll-target="#further-information">Further information</a></li>
+  <li><a href="#break-time" id="toc-break-time" class="nav-link" data-scroll-target="#break-time">Break Time! ☕️ ⌚️</a>
+  <ul>
+  <li><a href="#you-want-more-about-diversity" id="toc-you-want-more-about-diversity" class="nav-link" data-scroll-target="#you-want-more-about-diversity">You want more about diversity?</a></li>
+  </ul></li>
   <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
   </ul>
 </nav>
@@ -222,17 +225,25 @@ Getting help
 <hr>
 </section>
 <section id="setup" class="level2">
-<h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<p>Load the R packages we will be using:</p>
+<h2 class="anchored" data-anchor-id="setup">Setup ⚙️</h2>
+<ol type="1">
+<li>Open your RStudio server instance (or local RStudio if you prefer)</li>
+<li>Find the microbiome analysis folder</li>
+<li>Click on the .Rproj file to open an RStudio project (recommended)</li>
+<li>Open a new R script / notebook / quarto doc</li>
+<li>Load the R packages we will be using:</li>
+</ol>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(phyloseq)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(microViz)</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Get the two example datasets:</p>
+<ol start="6" type="1">
+<li>Explore some microbiomes</li>
+</ol>
 <ul>
-<li>We’ll primarily use these two datasets in these exercises</li>
+<li>We’ll use two example datasets in this evening’s exercises</li>
 <li>Both contain gut microbiome taxonomic composition data, from stool samples</li>
 <li>The first is from a 2019 study of antibiotic administration in mice</li>
 <li>The mouse antibiotics study used 16S rRNA gene amplicon sequencing
@@ -262,7 +273,7 @@ Getting help
 </ul>
 </section>
 <section id="intro-to-phyloseq" class="level2">
-<h2 class="anchored" data-anchor-id="intro-to-phyloseq">Intro to phyloseq</h2>
+<h2 class="anchored" data-anchor-id="intro-to-phyloseq">Intro to phyloseq 🦠</h2>
 <p>We will start with some processed microbiota data from the mouse study.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
@@ -720,7 +731,7 @@ tax_table()   Taxonomy Table:    [ 3229 taxa by 6 taxonomic ranks ]</code></pre>
   reorder.hclust vegan</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="exercises_1_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="576"></p>
+<p><img src="exercises_1_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
@@ -962,7 +973,7 @@ Explanation of the Effective Shannon Diversity
 </div>
 </div>
 <ul>
-<li>The mice exposed to Ampicillin (alone or with Metronidazole) appear to have higher diversity at this day 7 sample!</li>
+<li>The mice exposed to Ampicillin (± Metronidazole) appear to have higher diversity at this day 7 sample!</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A simple statistical test supports this assertion</span></span>
@@ -978,7 +989,10 @@ W = 59, p-value = 2.919e-06
 alternative hypothesis: true location shift is not equal to 0</code></pre>
 </div>
 </div>
-<p>You can apply more complex statistical tests if you like, e.g.&nbsp;adjusting for covariates with linear regression, using <code>lm()</code></p>
+<ul>
+<li>You can apply more complex statistical tests if you like</li>
+<li>e.g.&nbsp;adjusting for covariates with linear regression, using <code>lm()</code></li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>allMice <span class="sc">%&gt;%</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ps_filter</span>(treatment_days <span class="sc">==</span> <span class="st">"D7"</span>) <span class="sc">%&gt;%</span></span>
@@ -1009,6 +1023,7 @@ Multiple R-squared:  0.417, Adjusted R-squared:  0.3982
 F-statistic: 22.17 on 2 and 62 DF,  p-value: 5.454e-08</code></pre>
 </div>
 </div>
+<p><strong>Final activities for part 1:</strong></p>
 <ul>
 <li>Try making other diversity comparisons for yourself?</li>
 <li>Consider comparing ASV-level diversity?</li>
@@ -1018,8 +1033,10 @@ F-statistic: 22.17 on 2 and 62 DF,  p-value: 5.454e-08</code></pre>
 </ul>
 <hr>
 </section>
-<section id="further-information" class="level2">
-<h2 class="anchored" data-anchor-id="further-information">Further information</h2>
+<section id="break-time" class="level2">
+<h2 class="anchored" data-anchor-id="break-time">Break Time! ☕️ ⌚️</h2>
+<section id="you-want-more-about-diversity" class="level3">
+<h3 class="anchored" data-anchor-id="you-want-more-about-diversity">You want more about diversity?</h3>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1092,9 +1109,10 @@ Click here for an extension activity with an IBD dataset.
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ps_mutate</span>(<span class="at">disease =</span> ibd <span class="sc">==</span> <span class="st">"ibd"</span>, <span class="at">ibd =</span> <span class="cn">NULL</span>) <span class="co"># adds disease state indicator variable</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
-<li><p><code>ibd</code> is another phyloseq object containing 16S rRNA gene amplicon sequencing data, from a 2012 study of Inflammatory Bowel Disease in children and young adults.</p></li>
-<li><p>It’s “old” data: they used 454 Pyrosequencing, and clustered the raw sequences into “OTUs”.</p></li>
-<li><p>Have a look at the data, like we did before for the <code>mice</code> dataset.</p></li>
+<li><code>ibd</code> is another phyloseq object containing 16S rRNA gene amplicon sequencing data</li>
+<li>It is from a 2012 study of Inflammatory Bowel Disease in children and young adults</li>
+<li>It’s “old” data: they used 454 Pyrosequencing, and clustered the raw sequences into “OTUs”</li>
+<li>Have a look at the data, like we did before for the <code>mice</code> dataset</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>ibd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1109,7 +1127,8 @@ tax_table()   Taxonomy Table:    [ 36349 taxa by 6 taxonomic ranks ]</code></pre
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
-<li>You can perform alpha diversity analysis: Try comparing the alpha diversity of the IBD patients against the healthy controls.</li>
+<li>You can perform alpha diversity analysis:</li>
+<li>Try comparing the alpha diversity of the IBD patients against the healthy controls.</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1118,6 +1137,7 @@ tax_table()   Taxonomy Table:    [ 36349 taxa by 6 taxonomic ranks ]</code></pre
 </div>
 </div>
 <hr>
+</section>
 </section>
 <section id="session-info" class="level2">
 <h2 class="anchored" data-anchor-id="session-info">Session info</h2>
