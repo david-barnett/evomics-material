@@ -239,7 +239,7 @@ infants %>%
   coord_fixed(0.7)
 ```
 
-### Interactive ordination!
+## Interactive ordination!
 
 `microViz` provides a Shiny app `ord_explore` to interactively create and explore PCoA plots and other ordinations.
 See the code below to get started.
@@ -294,8 +294,9 @@ infants %>%
 ```
 
 ``` r
-# different options
-# run this line in your console
+# Again, with different options
+
+# Run these lines in your console
 shao19 %>%
   ps_filter(family_role == "mother") %>%
   tax_filter(min_prevalence = 2.5 / 100, verbose = FALSE) %>%
@@ -351,13 +352,18 @@ infants %>%
 # Set a random seed number for reproducibility of this stochastic method
 ```
 
-You can see from the model output that the p value, Pr(\>F) is below 0.05.
-So there is good statistical evidence that the bacterial gut microbiota composition of c-section delivered infants has a different composition than vaginally delivered infants at 4 days of age.
+You can see from the model output that the p value, Pr(\>F) is below 0.05. So there is good statistical evidence that the bacterial gut microbiota composition of C-section delivered infants has a different composition than vaginally delivered infants at 4 days of age.
 
-You should also report that you used Bray-Curtis dissimilarities, calculated on genera.
-(after keeping only unique taxa with a prevalence of at least 2.5%!)
+### Reporting PCoA and PERMANOVA methods
+
+- Your methodological choices matter, you should report what you did: 
+    - any relevant rare taxon filtering thresholds
+    - the taxonomic rank of aggregation
+    - the dissimilarity measure used to compute the pairwise distances
 
 It's probably a good idea to decide on a couple of appropriate distance measures up front for these tests, and report both (at least in supplementary material), as the choice of distance measure can affect results and conclusions!
+
+### Covariate-adjusted PERMANOVA
 
 You can also adjust for covariates in PERMANOVA, and often should, depending on your study design.
 Let's fit a more complex model, adjusting for infant sex, birth weight, and the total number of assigned reads.
@@ -382,6 +388,8 @@ infants %>%
 -   For practical purposes, PCA is quite similar to Principal Co-ordinates Analysis.
 -   In fact, PCA produces equivalent results to PCoA with Euclidean distances.
 
+
+::: {.callout-tip collapse="true"}
 ### "Help, what are Euclidean distances?"
 
 -   Euclidean distances are essentially a generalization of Pythagoras' theorem to more dimensions.
@@ -639,7 +647,7 @@ p <- shaoTaxaStats %>%
   scale_x_continuous(labels = scales::label_number(), name = "Total Abundance") +
   scale_y_continuous(
     labels = scales::label_percent(), breaks = scales::breaks_pretty(n = 9),
-    name = "Prevalence (%)", 
+    name = "Prevalence (%)",
     sec.axis = sec_axis(
       trans = ~ . * nsamples(shao19), breaks = scales::breaks_pretty(n = 9),
       name = "Prevalence (N samples)"
@@ -747,8 +755,8 @@ infants %>%
 
 ### Model one taxon
 
-We will start by creating a linear regression model for one genus, Bacteroides.
-We will transform the count data by first making it proportions, and then taking the binary logarithm, log2, after adding a pseudocount.
+- We will start by creating a linear regression model for one genus, Bacteroides.
+- We will transform the count data by first making it proportions, and then taking a base 2 logarithm, log2, after adding a pseudocount.
 
 ```{r}
 bacteroidesRegression1 <- infants %>%
@@ -760,10 +768,15 @@ bacteroidesRegression1 <- infants %>%
     return_psx = FALSE
   ) %>%
   pluck(1)
+```
 
-# looking at the regression results
+- Looking at the regression results
+
+```{r}
 summary(bacteroidesRegression1)
-confint(bacteroidesRegression1)
+```
+
+```{r}
 broom::tidy(bacteroidesRegression1, conf.int = TRUE)
 ```
 
@@ -786,7 +799,8 @@ infants %>%
 
 :::
 
-- We can fit a model with covariates, as we did for PERMANOVA
+We can fit a model with covariates, as we did for PERMANOVA
+
 - We will convert the categorical variables into indicator (dummy) variables 
 - We will scale the continuous covariates to 0 mean and SD 1 (z-scores)
 - You'll see this will make our subsequent plots easier to interpret later
@@ -800,6 +814,7 @@ infants <- infants %>%
     Reads_Z = scale(number_reads, center = TRUE, scale = TRUE)
   )
 ```
+
 
 ```{r}
 bacteroidesRegression2 <- infants %>%
@@ -822,8 +837,8 @@ broom::tidy(bacteroidesRegression2, conf.int = TRUE)
 
 #### Many DA methods
 
-- This method simple method is one borrowed from MaAsLin2 
-- Except they call the compositional transformation "Total Sum Scaling (TSS)")
+- This method simple method is borrowed from MaAsLin2 
+- Note: they call the compositional transformation "Total Sum Scaling (TSS)")
 - This is quite a straightforward method, so we will stick with this for today
 - But, many statistical methods have been developed for differential abundance analyses
 
@@ -834,7 +849,7 @@ The aim is to have a method with adequate power to detect true associations, whi
 
 Results are surprisingly inconsistent across the different methods, as demonstrated this year in a [fascinating analysis by Jacob Nearing and colleagues](https://www.nature.com/articles/s41467-022-28034-z).
 
-**What to do?**
+#### So, what to do?
 
 -   Filter out the noise & interpret results with caution! use multiple testing corrections
 -   Remember it's all relative (abundance)
@@ -878,16 +893,20 @@ Next we will get a data.frame containing the regression coefficient estimates, t
 ```{r}
 shaoStats <- taxatree_models2stats(shaoModels)
 shaoStats
+```
+
+```{r}
 shaoStats %>% taxatree_stats_get()
 ```
 
 #### Adjusting p values
 
-As we have performed a lot of statistical tests here, it is quite possible that could we find some significant p-values by chance alone.
+- We have performed a lot of statistical tests here!
+- It is likely that we could find some significant p-values by chance alone.
 
-So we should correct for multiple testing / control the false discovery rate or family-wise error rate.
+- We should correct for multiple testing / control the false discovery rate or family-wise error rate.
 
-Instead of applying these adjustment methods across all 86 taxa models at all ranks, the default behaviour is to control the family-wise error rate per taxonomic rank.
+*Instead of applying these adjustment methods across all 86 taxa models at all ranks, the default behaviour is to control the family-wise error rate per taxonomic rank.*
 
 ```{r}
 shaoStats <- shaoStats %>% taxatree_stats_p_adjust(method = "BH", grouping = "rank")
@@ -897,9 +916,9 @@ shaoStats %>% taxatree_stats_get()
 
 ### Plot all the taxatree_stats!
 
-`taxatree_plots()` allows you to plot statistics (e.g. point estimates and significance) from all of the taxa models onto a tree layout.
-The taxon models are organised by rank, radiating out from the central root node from e.g.
-Phyla around the center to Species in the outermost ring.
+- `taxatree_plots()` allows you to plot statistics from all of the taxa models onto a tree layout (e.g. point estimates and significance).
+- The taxon model results are organised by rank, radiating out from the central root node 
+- e.g. from Phyla around the center to Species in the outermost ring.
 
 `taxatree_plots()` itself returns a list of plots, which you can arrange into one figure with the [`patchwork`](https://patchwork.data-imaginist.com/) package for example (and/or [`cowplot`](https://wilkelab.org/cowplot/articles/plot_grid.html)).
 
