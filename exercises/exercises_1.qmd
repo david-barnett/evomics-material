@@ -1,45 +1,56 @@
 ---
-title: "Learn microbiome analysis with microViz"
+title: "Evomics Workshop part 1"
+subtitle: "Microbiome analysis with microViz"
 author: "David Barnett"
 date: "24 May 2023"
 format: 
   html:
-    theme: paper
+    theme:
+      light: flatly
+      dark: darkly
+    fontsize: 1em
     toc: true
     toc-depth: 4
-    toc-location: left
+    fig-width: 6
+    fig-height: 4
+    dpi: 120
 ---
 
-## Overview
+## Instructions 👋
 
-These exercises will cover some of the core concepts in microbiome data analysis, using example data.
-You can follow along by writing code in your own R script (or in an R Markdown notebook, or in a Quarto doc).
+-   These exercises will introduce some core concepts in microbiome analysis, using example data
+-   Follow along by writing code in your own R script (or an R Markdown notebook, or a Quarto doc)
 
--   [**Part 1**](#intro-diversity): phyloseq objects for microbiome data; stacked bar charts for visualizing microbiome compositions; and ecosystem diversity indices.
+```{r}
+# Code blocks have a copy button in the top right -> -> -> -> ->
+cat("- Copy and modify the code examples\n- Try to understand what it does, and play around!")
+```
 
--   [**Part 2**](#dissimilarity-ordination-da): ecological dissimilarity measures; PCoA; PERMANOVA; PCA; and Differential Abundance testing.
+::: {.callout-important collapse="true"}
+### Click on these collapsed callout blocks for more info
 
-### Further resources
+**Topics for part 1:**
 
-Refer to the [microViz website](https://david-barnett.github.io/microViz/) to see help pages for every function (as well as further tutorials).
+1.  phyloseq objects for microbiome data
+2.  Stacked bar charts for visualizing microbiome compositions
+3.  Ecosystem diversity indices
+:::
+
+::: {.callout-note collapse="true"}
+### Getting help
+
+The [microViz website](https://david-barnett.github.io/microViz/) has help pages for every function and more tutorials.
+
+:::
 
 ------------------------------------------------------------------------
 
 ## Setup
 
-Set R Markdown chunk output options:
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 6, fig.height = 4, dpi = 120)
-```
-
 Load the R packages we will be using:
 
 ```{r message=FALSE}
-library(seriation)
-library(dplyr)
-library(purrr)
-library(ggplot2)
+library(tidyverse)
 library(phyloseq)
 library(microViz)
 library(shiny)
@@ -47,43 +58,30 @@ library(shiny)
 
 Get the two example datasets:
 
+-   We'll primarily use these two datasets in these exercises
+-   Both contain gut microbiome taxonomic composition data, from stool samples
+-   The first is from a 2019 study of antibiotic administration in mice
+-   The mouse antibiotics study used 16S rRNA gene amplicon sequencing
+    -   They used Illumina MiSeq and processed the data into ASVs using DADA2
+
 ```{r}
-data_directory <- here::here("data") # set to correct AMI path to data folder
+# check data_directory is correct path on AMI to data folder
+data_directory <- here::here("data") 
 mice <- readRDS(file.path(data_directory, "mice.rds"))
 ```
+
+-   The second is from a large birth cohort study, containing human infants born by C-section or vaginal delivery
+-   The birth cohort study data is shotgun metagenomics data
+    -   They used Illumina HiSeq and inferred the abundance of species-like features with metaphlan3.
+
+<!-- (Note: not metaphlan3 in the paper, but available from curatedMetagenomicData package/project) -->
 
 ```{r}
 data("shao19", package = "microViz")
 ```
 
--   We'll primarily use these two datasets in these exercises
-
--   Both contain gut microbiome taxonomic composition data, from stool samples
-
--   The first is from a 2019 study of antibiotic administration in mice
-
--   The second is from a large birth cohort study, containing human infants born by C-section or vaginal delivery
-
--   The mouse antibiotics study used 16S rRNA gene amplicon sequencing
-
-    -   They used Illumina MiSeq and processed the data into ASVs using DADA2
-
--   The birth cohort study data is shotgun metagenomics data
-
-    -   They used Illumina HiSeq and inferred the abundance of species-like features with metaphlan3.
-
-<!-- (Note: not metaphlan3 in the paper, but available from curatedMetagenomicData package/project) -->
-
 -   All analysis approaches we'll learn this evening can be applied to both kinds of data.
 -   These methods are also appropriate for microbiome data from other environments, not just the gut microbiota! (microViz has been used by groups analysing microbiomes associated with Antarctic sponges, and Kiwi birds, amongst other things.)
-
-------------------------------------------------------------------------
-
-## 1: Intro & Diversity {#intro-diversity}
-
-This section will introduce you to: phyloseq objects for microbiome data; basic bar charts for visualizing microbiome compositions; and alpha diversity indices.
-
-------------------------------------------------------------------------
 
 ## Intro to phyloseq
 
@@ -314,8 +312,6 @@ ggsave(
 ```
 
 **Be sure to carefully adjust the sizing and resolution of your plots for your paper or presentation!**
-:::
-
 :::
 
 -   Try aggregating at other ranks, e.g. Class.
@@ -554,8 +550,8 @@ mice %>%
 
 ## Comparing Diversity
 
-- Let us now compare the diversity of our samples.
-- Perhaps we hypothesise that the mouse gut diversity differs after antibiotic treatment.
+-   Let us now compare the diversity of our samples.
+-   Perhaps we hypothesise that the mouse gut diversity differs after antibiotic treatment.
 
 ```{r}
 miceShannonDf <- mice %>%
@@ -573,7 +569,7 @@ miceShannonDf %>%
   theme_bw()
 ```
 
-- The mice exposed to Ampicillin (alone or with Metronidazole) appear to have higher diversity at this day 7 sample!
+-   The mice exposed to Ampicillin (alone or with Metronidazole) appear to have higher diversity at this day 7 sample!
 
 ```{r}
 # A simple statistical test supports this assertion
@@ -594,24 +590,24 @@ allMice %>%
   summary()
 ```
 
-- Try making other diversity comparisons for yourself?
-- Consider comparing ASV-level diversity?
-- Does virus exposure influence diversity?
-- What about comparing richness?
-- Practice making plots and doing simple statistical tests.
+-   Try making other diversity comparisons for yourself?
+-   Consider comparing ASV-level diversity?
+-   Does virus exposure influence diversity?
+-   What about comparing richness?
+-   Practice making plots and doing simple statistical tests.
 
 ------------------------------------------------------------------------
 
-## Further information 
+## Further information
 
 ::: {.callout-note collapse="true"}
 ### Click here for additional notes on richness and readcount
 
-- Simple measures like Observed Richness are sensitive to what ecologists call "sampling effort".
-- For macroecologists, this is actually how much time/effort you spent trying to count all the organisms present in an ecosystem.
-- In our case, the amount of total reads obtained represents the sampling effort: more reads, more effort.
-- Indeed we can see that the samples with a much lower readcount have lower observed richness.
-- Furthermore, as this richness estimate is based on a sample, and not the actual ecosystem, the richness estimate actually has quantifiable uncertainty too.
+-   Simple measures like Observed Richness are sensitive to what ecologists call "sampling effort".
+-   For macroecologists, this is actually how much time/effort you spent trying to count all the organisms present in an ecosystem.
+-   In our case, the amount of total reads obtained represents the sampling effort: more reads, more effort.
+-   Indeed we can see that the samples with a much lower readcount have lower observed richness.
+-   Furthermore, as this richness estimate is based on a sample, and not the actual ecosystem, the richness estimate actually has quantifiable uncertainty too.
 
 ```{r}
 mice %>%
@@ -638,7 +634,6 @@ mice %>%
 
 1)  **Simple solution**: Ignore the problem. Whilst you can't interpret the richness of any individual sample as being correct, it is still usually valid to compare richness across groups of samples, as the readcount variation is only random noise, and should be uncorrelated with your grouping variable (but do check this).
 2)  **Harder solution**: Explore more rigorous methods like `breakaway` by Amy Willis and team. <https://www.frontiersin.org/articles/10.3389/fmicb.2019.02407/full>
-
 :::
 
 ::: {.callout-note collapse="true"}
@@ -654,11 +649,11 @@ ibd <- corncob::ibd_phylo %>%
   ps_mutate(disease = ibd == "ibd", ibd = NULL) # adds disease state indicator variable
 ```
 
-- `ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data, from a 2012 study of Inflammatory Bowel Disease in children and young adults.
+-   `ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data, from a 2012 study of Inflammatory Bowel Disease in children and young adults.
 
-- It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs".
+-   It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs".
 
-- Have a look at the data, like we did before for the `mice` dataset.
+-   Have a look at the data, like we did before for the `mice` dataset.
 
 ```{r}
 ibd
@@ -668,12 +663,11 @@ ibd
 #
 ```
 
-- You can perform alpha diversity analysis: Try comparing the alpha diversity of the IBD patients against the healthy controls.
+-   You can perform alpha diversity analysis: Try comparing the alpha diversity of the IBD patients against the healthy controls.
 
 ```{r}
 #
 ```
-
 :::
 
 ------------------------------------------------------------------------
