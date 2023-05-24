@@ -780,24 +780,7 @@ summary(bacteroidesRegression1)
 broom::tidy(bacteroidesRegression1, conf.int = TRUE)
 ```
 
-::: {.callout-note collapse="true"}
-#### Click here for optional ggplot2 extension exercise:
-
-Starting from a dataframe like the one produced by the code below, plot:
-
-1.  Easy: The percentage prevalence of Bacteroides in each birth_mode group
-2.  Medium: The distribution of relative abundance of Bacteroides in each birth_mode group, omitting zeros, on a log2 scale
-3.  Hard: Do task 1 or 2 for for several taxa in one plot - (hint: `pivot_longer`)
-
-``` r
-infants %>%
-  tax_transform("compositional", rank = "genus") %>%
-  ps_get() %>%
-  ps_otu2samdat(taxa = "Bacteroides") %>%
-  samdat_tbl()
-```
-
-:::
+### Covariate-adjusted model
 
 We can fit a model with covariates, as we did for PERMANOVA
 
@@ -835,7 +818,7 @@ summary(bacteroidesRegression2)
 broom::tidy(bacteroidesRegression2, conf.int = TRUE)
 ```
 
-#### Many DA methods
+### There are many DA methods!
 
 - This method simple method is borrowed from MaAsLin2 
 - Note: they call the compositional transformation "Total Sum Scaling (TSS)")
@@ -849,6 +832,7 @@ The aim is to have a method with adequate power to detect true associations, whi
 
 Results are surprisingly inconsistent across the different methods, as demonstrated this year in a [fascinating analysis by Jacob Nearing and colleagues](https://www.nature.com/articles/s41467-022-28034-z).
 
+
 #### So, what to do?
 
 -   Filter out the noise & interpret results with caution! use multiple testing corrections
@@ -858,7 +842,7 @@ Results are surprisingly inconsistent across the different methods, as demonstra
     -   Beware: Not all methods allow covariate adjustment & few allow random effects (for time-series)
 
 
-### Model all the taxa!
+### Now model all the taxa!?
 
 1.  We're not normally interested in just one taxon!
 2.  It's also hard to decide which taxonomic rank we are most interested in modelling!
@@ -869,6 +853,7 @@ Results are surprisingly inconsistent across the different methods, as demonstra
 -   \*We'll filter out species with a prevalence of less than 10%
 
 ```{r}
+#| warning: false
 # The code for `taxatree_models` is quite similar to tax_model.
 # However, you might need to run `tax_prepend_ranks` to ensure that each taxon at each rank is always unique.
 shaoModels <- infants %>%
@@ -881,6 +866,10 @@ shaoModels <- infants %>%
     ranks = c("phylum", "class", "order", "family", "genus", "species"),
     variables = c("C_section", "Female", "Birth_weight_Z", "Reads_Z")
   )
+```
+
+
+```{r}
 shaoModels
 ```
 
@@ -960,6 +949,10 @@ See an extended tutorial [here on the microViz website](https://david-barnett.gi
 `session_info` records your package versions etc.
 This is useful for debugging / reproducing analysis.
 
+::: {.callout-note collapse="true"}
+### Long session_info output
 ```{r}
 devtools::session_info()
 ```
+
+:::

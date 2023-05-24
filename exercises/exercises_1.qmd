@@ -555,8 +555,9 @@ mice %>%
 -   If your original ecosystem was actually perfectly even, then $e^H = N$
 -   Where N is the observed richness
 -   The more uneven an ecosystem, the further $e^H$ will be from $N$
+
 :::
-:::
+
 
 ## Comparing Diversity
 
@@ -693,7 +694,7 @@ ibd
 This is useful for debugging / reproducing analysis.
 
 ::: {.callout-note collapse="true"}
-
+### Long session_info output
 ```{r}
 devtools::session_info()
 ```
