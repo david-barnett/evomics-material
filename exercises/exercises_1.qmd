@@ -338,8 +338,8 @@ miceBarsD7koolaid <- mice %>%
 ```r
 # Write the plot to a file, with ggsave
 ggsave(
-  filename = "mice-barchart-day7-WNV.png", device = "png",
-  plot = miceBarsD7koolaid, width = 6.5, height = 3.5, dpi = 200
+  filename = "mice-barchart-day7-WNV.pdf",
+  plot = miceBarsD7koolaid, width = 6.5, height = 3.5
 )
 ```
 
@@ -453,7 +453,7 @@ plotsWNV <- plotsWNV + plot_layout(guides = "collect", nrow = 4, heights = c(2,2
 plotsWNV <- plotsWNV & facet_grid(cols = vars(cage_number), rows = vars(cage_letter))
 
 # Write these plots to a large image file!
-ggsave(plot = plotsWNV, filename = "WNVplots.png", height = 12, width = 8, dpi = 200)
+ggsave(plot = plotsWNV, filename = "WNVplots.pdf", height = 12, width = 8)
 ```
 
 ```{r}

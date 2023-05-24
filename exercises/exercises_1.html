@@ -632,8 +632,8 @@ Tip: Use ggsave to save your plots?
 </div>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Write the plot to a file, with ggsave</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">filename =</span> <span class="st">"mice-barchart-day7-WNV.png"</span>, <span class="at">device =</span> <span class="st">"png"</span>,</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> miceBarsD7koolaid, <span class="at">width =</span> <span class="fl">6.5</span>, <span class="at">height =</span> <span class="fl">3.5</span>, <span class="at">dpi =</span> <span class="dv">200</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">filename =</span> <span class="st">"mice-barchart-day7-WNV.pdf"</span>,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> miceBarsD7koolaid, <span class="at">width =</span> <span class="fl">6.5</span>, <span class="at">height =</span> <span class="fl">3.5</span></span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Be sure to carefully adjust the sizing and resolution of your plots for your paper or presentation!</strong></p>
 </div>
@@ -779,7 +779,7 @@ tax_table()   Taxonomy Table:    [ 3229 taxa by 6 taxonomic ranks ]</code></pre>
 <span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>plotsWNV <span class="ot">&lt;-</span> plotsWNV <span class="sc">&amp;</span> <span class="fu">facet_grid</span>(<span class="at">cols =</span> <span class="fu">vars</span>(cage_number), <span class="at">rows =</span> <span class="fu">vars</span>(cage_letter))</span>
 <span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Write these plots to a large image file!</span></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="at">plot =</span> plotsWNV, <span class="at">filename =</span> <span class="st">"WNVplots.png"</span>, <span class="at">height =</span> <span class="dv">12</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">dpi =</span> <span class="dv">200</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="at">plot =</span> plotsWNV, <span class="at">filename =</span> <span class="st">"WNVplots.pdf"</span>, <span class="at">height =</span> <span class="dv">12</span>, <span class="at">width =</span> <span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
