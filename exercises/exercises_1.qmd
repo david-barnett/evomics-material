@@ -215,6 +215,7 @@ tax_table(mice)[1:5, ]
 
 ```{r}
 # tax_fix_interactive(mice) # run this in the R Console 
+# You may need to allow popups on your browser!
 ```
 
 ::: callout-warning
