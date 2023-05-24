@@ -591,10 +591,8 @@ patchwork::wrap_plots(pca, iris, nrow = 1, guides = "collect")
 
 :::
 
-------------------------------------------------------------------------
-
 ::: {.callout-note collapse="true"}
-### Taxon filtering
+### Notes on filtering rare taxa
 
 We probably want to filter out **rare** taxa, before performing some kinds of analysis.
 
@@ -737,6 +735,8 @@ shao19 %>%
 -   differential abundance testing: stringent filtering, prevalence \>5%, \>10%? 
 
 :::
+
+------------------------------------------------------------------------
 
 ## Taxon stats
 

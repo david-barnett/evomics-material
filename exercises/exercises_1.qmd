@@ -49,11 +49,32 @@ cat("- Copy and modify the code examples\n- Try to understand what it does, and 
 
 ## Setup ⚙️
 
-1. Open your RStudio server instance (or local RStudio if you prefer)
+1. Open your RStudio server instance
 2. Find the microbiome analysis folder
-3. Click on the .Rproj file to open an RStudio project (recommended)
-4. Open a new R script / notebook / quarto doc
-5. Load the R packages we will be using:
+3. Click on the file ending **.Rproj** to open an RStudio project 
+4. Go to the RStudio **"Git"** tab, and click on **Pull** (this will ensure you have this year's example data)
+
+::: {.callout-important}
+### Emergency bug fixing step 
+
+**As a last minute bug fix 🐛 please now reinstall the ggplot2 and microViz packages**
+
+```r
+# copy this code into the R console and run it
+install.packages("ggplot2", repos = "https://cloud.r-project.org") 
+```
+
+```r
+install.packages(
+  "microViz",
+  repos = c(davidbarnett = "https://david-barnett.r-universe.dev", getOption("repos"))
+)
+```
+
+:::
+
+5. Open a new R script / notebook / quarto doc
+6. Load the R packages we will be using:
 
 ```{r message=FALSE}
 library(tidyverse)
@@ -62,7 +83,7 @@ library(microViz)
 library(shiny)
 ```
 
-6. Explore some microbiomes
+7. Explore some microbiomes!
 
 -   We'll use two example datasets in this evening's exercises
 -   Both contain gut microbiome taxonomic composition data, from stool samples
@@ -87,7 +108,9 @@ data("shao19", package = "microViz")
 ```
 
 -   All analysis approaches we'll learn this evening can be applied to both kinds of data.
--   These methods are also appropriate for microbiome data from other environments, not just the gut microbiota! (microViz has been used by groups analysing microbiomes associated with Antarctic sponges, and Kiwi birds, amongst other things.)
+-   These methods are also appropriate for microbiome data from other environments, not just the gut microbiota! 
+
+*microViz has been used by groups analysing microbiomes associated with Antarctic sponges, Kiwi birds, and wastewater samples, amongst other things.*
 
 ## Intro to phyloseq 🦠
 
