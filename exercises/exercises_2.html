@@ -655,10 +655,10 @@ For more details on PERMANOVA
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dist_permanova</span>(<span class="at">variables =</span> <span class="st">"birth_mode"</span>, <span class="at">n_perms =</span> <span class="dv">99</span>, <span class="at">seed =</span> <span class="dv">123</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">perm_get</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 02:18:20.521774 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
+<pre><code>2023-05-24 11:00:36.531848 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 02:18:20.645298 - Finished PERMANOVA</code></pre>
+<pre><code>2023-05-24 11:00:36.651858 - Finished PERMANOVA</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Permutation test for adonis under reduced model
@@ -707,10 +707,10 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>Dropping samples with missings: 15</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 02:18:20.751313 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
+<pre><code>2023-05-24 11:00:36.75628 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 02:18:21.658419 - Finished PERMANOVA</code></pre>
+<pre><code>2023-05-24 11:00:37.655359 - Finished PERMANOVA</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Permutation test for adonis under reduced model
@@ -762,7 +762,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p><strong>Euclidean distance:</strong></p>
 <p><span class="math display">\[d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }\]</span></p>
 <ul>
-<li>Distance <span class="math inline">\(d\)</span> between samples <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>, with <span class="math inline">\(i\)</span> taxa.</li>
+<li>Distance <span class="math inline">\(d\)</span> between samples <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>, with <span class="math inline">\(n\)</span> taxa.</li>
 </ul>
 </div>
 </div>
@@ -1192,7 +1192,7 @@ Caused by warning:
 </section>
 <section id="taxon-stats" class="level2">
 <h2 class="anchored" data-anchor-id="taxon-stats">Taxon stats</h2>
-<p>From the PCA loadings and barplots above, we have some strong suspicions about which taxa have a higher relative abundance in vaginally delivered infants than in c-section delivered infants, and vice versa, but we can also statistically test this. This is often called “differential abundance” (DA) testing, in the style of “differential expression” (DE) testing from the transcriptomics field.</p>
+<p>From the PCA loadings and barplots below, we have some strong suspicions about which taxa have a higher relative abundance in vaginally delivered infants than in c-section delivered infants, and vice versa, but we can also statistically test this. This is often called “differential abundance” (DA) testing, in the style of “differential expression” (DE) testing from the transcriptomics field.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>infants <span class="sc">%&gt;%</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">comp_barplot</span>(</span>

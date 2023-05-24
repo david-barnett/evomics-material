@@ -403,7 +403,7 @@ $$c = \sqrt{a^2 + b^2}$$
 
 $$d\left(p, q\right) = \sqrt{\sum _{i=1}^{n_{taxa}} \left( p_{i}-q_{i}\right)^2 }$$
 
-- Distance $d$ between samples $p$ and $q$, with $i$ taxa.
+- Distance $d$ between samples $p$ and $q$, with $n$ taxa.
 
 :::
 
@@ -740,7 +740,7 @@ shao19 %>%
 
 ## Taxon stats
 
-From the PCA loadings and barplots above, we have some strong suspicions about which taxa have a higher relative abundance in vaginally delivered infants than in c-section delivered infants, and vice versa, but we can also statistically test this.
+From the PCA loadings and barplots below, we have some strong suspicions about which taxa have a higher relative abundance in vaginally delivered infants than in c-section delivered infants, and vice versa, but we can also statistically test this.
 This is often called "differential abundance" (DA) testing, in the style of "differential expression" (DE) testing from the transcriptomics field.
 
 ```{r}

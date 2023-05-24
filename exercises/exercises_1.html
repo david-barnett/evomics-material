@@ -128,7 +128,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#ecosystem-diversity" id="toc-ecosystem-diversity" class="nav-link" data-scroll-target="#ecosystem-diversity">Ecosystem diversity</a>
   <ul>
   <li><a href="#richness" id="toc-richness" class="nav-link" data-scroll-target="#richness">Richness</a></li>
-  <li><a href="#diversity" id="toc-diversity" class="nav-link" data-scroll-target="#diversity">Diversity</a></li>
+  <li><a href="#diversity" id="toc-diversity" class="nav-link" data-scroll-target="#diversity">Diversity</a>
+  <ul class="collapse">
+  <li><a href="#effective-shannon-diversity" id="toc-effective-shannon-diversity" class="nav-link" data-scroll-target="#effective-shannon-diversity">2. Effective Shannon Diversity</a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#comparing-diversity" id="toc-comparing-diversity" class="nav-link" data-scroll-target="#comparing-diversity">Comparing Diversity</a></li>
   <li><a href="#break-time" id="toc-break-time" class="nav-link" data-scroll-target="#break-time">Break Time! ☕️ ⌚️</a>
@@ -218,7 +221,11 @@ Getting help
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The <a href="https://david-barnett.github.io/microViz/">microViz website</a> has help pages for every function and more tutorials.</p>
+<ul>
+<li>The <a href="https://david-barnett.github.io/microViz/">microViz website</a> has help pages for every function (and more tutorials)</li>
+<li>Ask your neighbour, a TA, or me</li>
+<li>ChatGPT doesn’t know anything about microViz…</li>
+</ul>
 </div>
 </div>
 </div>
@@ -848,10 +855,7 @@ Why is diversity interesting?
 <li>A true measure of ecosystem diversity will also consider the evenness of the ecosystem.</li>
 <li>A rich ecosystem predominated by one taxon is still intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa.</li>
 </ul>
-<div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">1. Shannon Index</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">2. Effective Shannon Diversity</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<p>::: panel-tabset #### 1. Shannon Index</p>
 <div class="cell">
 <details>
 <summary>Code to compute Shannon Index and make a barplot</summary>
@@ -897,8 +901,8 @@ Explanation of the Shannon index formula
 </div>
 </div>
 </div>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<section id="effective-shannon-diversity" class="level4">
+<h4 class="anchored" data-anchor-id="effective-shannon-diversity">2. Effective Shannon Diversity</h4>
 <div class="cell">
 <details>
 <summary>Code to compute Exponential Shannon and make a barplot</summary>
@@ -943,9 +947,7 @@ Explanation of the Effective Shannon Diversity
 </div>
 </div>
 </div>
-</div>
-</div>
-</div>
+</section>
 </section>
 </section>
 <section id="comparing-diversity" class="level2">
@@ -1147,7 +1149,7 @@ tax_table()   Taxonomy Table:    [ 36349 taxa by 6 taxonomic ranks ]</code></pre
 <i class="callout-icon"></i>
 </div>
 <div class="callout-caption-container flex-fill">
-Note
+Long session_info output
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -1166,7 +1168,7 @@ Note
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Europe/Prague
- date     2023-05-23
+ date     2023-05-24
  pandoc   3.0.1 @ /opt/homebrew/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────

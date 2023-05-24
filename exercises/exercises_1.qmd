@@ -39,7 +39,9 @@ cat("- Copy and modify the code examples\n- Try to understand what it does, and 
 ::: {.callout-note collapse="true"}
 ### Getting help
 
-The [microViz website](https://david-barnett.github.io/microViz/) has help pages for every function and more tutorials.
+- The [microViz website](https://david-barnett.github.io/microViz/) has help pages for every function (and more tutorials)
+- Ask your neighbour, a TA, or me
+- ChatGPT doesn't know anything about microViz...
 
 :::
 
