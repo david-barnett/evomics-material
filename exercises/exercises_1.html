@@ -128,10 +128,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#ecosystem-diversity" id="toc-ecosystem-diversity" class="nav-link" data-scroll-target="#ecosystem-diversity">Ecosystem diversity</a>
   <ul>
   <li><a href="#richness" id="toc-richness" class="nav-link" data-scroll-target="#richness">Richness</a></li>
-  <li><a href="#diversity" id="toc-diversity" class="nav-link" data-scroll-target="#diversity">Diversity</a>
-  <ul class="collapse">
-  <li><a href="#effective-shannon-diversity" id="toc-effective-shannon-diversity" class="nav-link" data-scroll-target="#effective-shannon-diversity">2. Effective Shannon Diversity</a></li>
-  </ul></li>
+  <li><a href="#diversity" id="toc-diversity" class="nav-link" data-scroll-target="#diversity">Diversity</a></li>
   </ul></li>
   <li><a href="#comparing-diversity" id="toc-comparing-diversity" class="nav-link" data-scroll-target="#comparing-diversity">Comparing Diversity</a></li>
   <li><a href="#break-time" id="toc-break-time" class="nav-link" data-scroll-target="#break-time">Break Time! ☕️ ⌚️</a>
@@ -281,9 +278,14 @@ Emergency bug fixing step
 </ul></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check data_directory is correct path on AMI to data folder</span></span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check data_directory is correct path on AMI to data folder</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>) </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>mice <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">file.path</span>(data_directory, <span class="st">"mice.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># A manageable small subset of the mouse data to start practicing with</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>mice <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">file.path</span>(data_directory, <span class="st">"mice.rds"</span>))</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># And the full dataset, we will use it later - ignore it for now</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>allMice <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">file.path</span>(data_directory, <span class="st">"allMice.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>The second is from a large birth cohort study, containing human infants born by C-section or vaginal delivery</li>
@@ -718,9 +720,8 @@ Optional extension exercise: More mice data!
 <li>Let’s grab the full dataset for more practice arranging our bar charts.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>allMice <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">file.path</span>(data_directory, <span class="st">"allMice.rds"</span>))</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>allMice <span class="ot">&lt;-</span> <span class="fu">tax_fix</span>(allMice, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>allMice</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>allMice <span class="ot">&lt;-</span> <span class="fu">tax_fix</span>(allMice, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>allMice</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>phyloseq-class experiment-level object
 otu_table()   OTU Table:         [ 3229 taxa and 520 samples ]
@@ -879,7 +880,10 @@ Why is diversity interesting?
 <li>A true measure of ecosystem diversity will also consider the evenness of the ecosystem.</li>
 <li>A rich ecosystem predominated by one taxon is still intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa.</li>
 </ul>
-<p>::: panel-tabset #### 1. Shannon Index</p>
+<div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">1. Shannon Index</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">2. Effective Shannon Diversity</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
 <details>
 <summary>Code to compute Shannon Index and make a barplot</summary>
@@ -925,8 +929,8 @@ Explanation of the Shannon index formula
 </div>
 </div>
 </div>
-<section id="effective-shannon-diversity" class="level4">
-<h4 class="anchored" data-anchor-id="effective-shannon-diversity">2. Effective Shannon Diversity</h4>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
 <details>
 <summary>Code to compute Exponential Shannon and make a barplot</summary>
@@ -971,7 +975,9 @@ Explanation of the Effective Shannon Diversity
 </div>
 </div>
 </div>
-</section>
+</div>
+</div>
+</div>
 </section>
 </section>
 <section id="comparing-diversity" class="level2">
@@ -1192,7 +1198,7 @@ Long session_info output
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Europe/Prague
- date     2023-05-24
+ date     2023-05-25
  pandoc   3.0.1 @ /opt/homebrew/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────

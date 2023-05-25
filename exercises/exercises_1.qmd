@@ -92,9 +92,14 @@ library(shiny)
     -   They used Illumina MiSeq and processed the data into ASVs using DADA2
 
 ```{r}
-# check data_directory is correct path on AMI to data folder
+# Check data_directory is correct path on AMI to data folder
 data_directory <- here::here("data") 
+
+# A manageable small subset of the mouse data to start practicing with
 mice <- readRDS(file.path(data_directory, "mice.rds"))
+
+# And the full dataset, we will use it later - ignore it for now
+allMice <- readRDS(file.path(data_directory, "allMice.rds"))
 ```
 
 -   The second is from a large birth cohort study, containing human infants born by C-section or vaginal delivery
@@ -401,7 +406,6 @@ library(patchwork)
 -   Let's grab the full dataset for more practice arranging our bar charts.
 
 ```{r}
-allMice <- readRDS(file.path(data_directory, "allMice.rds"))
 allMice <- tax_fix(allMice, verbose = FALSE)
 allMice
 ```
@@ -584,6 +588,7 @@ mice %>%
 
 :::
 
+:::
 
 ## Comparing Diversity
 
