@@ -761,9 +761,9 @@ infants %>%
 ```{r}
 bacteroidesRegression1 <- infants %>%
   tax_transform("compositional", rank = "genus") %>%
-  tax_transform("log2", zero_replace = "halfmin", chain = TRUE) %>%
   tax_model(
     type = "lm", rank = "genus",
+    trans = "log2", trans_args = list(zero_replace = "halfmin"),
     taxa = "Bacteroides", variables = "birth_mode",
     return_psx = FALSE
   ) %>%
@@ -802,9 +802,9 @@ infants <- infants %>%
 ```{r}
 bacteroidesRegression2 <- infants %>%
   tax_transform("compositional", rank = "genus") %>%
-  tax_transform("log2", zero_replace = "halfmin", chain = TRUE) %>%
   tax_model(
     type = "lm", rank = "genus", taxa = "Bacteroides",
+    trans = "log2", trans_args = list(zero_replace = "halfmin"),
     variables = c("C_section", "Female", "Birth_weight_Z", "Reads_Z"),
     return_psx = FALSE
   ) %>%
@@ -860,9 +860,9 @@ shaoModels <- infants %>%
   tax_prepend_ranks() %>%
   tax_transform("compositional", rank = "species", keep_counts = TRUE) %>%
   tax_filter(min_prevalence = 0.1, undetected = 0, use_counts = TRUE) %>%
-  tax_transform(trans = "log2", chain = TRUE, zero_replace = "halfmin") %>%
   taxatree_models(
     type = lm,
+    trans = "log2", trans_args = list(zero_replace = "halfmin"),
     ranks = c("phylum", "class", "order", "family", "genus", "species"),
     variables = c("C_section", "Female", "Birth_weight_Z", "Reads_Z")
   )

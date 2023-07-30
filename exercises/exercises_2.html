@@ -655,10 +655,10 @@ For more details on PERMANOVA
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dist_permanova</span>(<span class="at">variables =</span> <span class="st">"birth_mode"</span>, <span class="at">n_perms =</span> <span class="dv">99</span>, <span class="at">seed =</span> <span class="dv">123</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">perm_get</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 11:55:05.299356 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
+<pre><code>2023-07-30 20:51:25.860412 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 11:55:05.419289 - Finished PERMANOVA</code></pre>
+<pre><code>2023-07-30 20:51:25.952266 - Finished PERMANOVA</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Permutation test for adonis under reduced model
@@ -707,10 +707,10 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>Dropping samples with missings: 15</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 11:55:05.523004 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
+<pre><code>2023-07-30 20:51:26.021612 - Starting PERMANOVA with 99 perms with 1 processes</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-05-24 11:55:06.424083 - Finished PERMANOVA</code></pre>
+<pre><code>2023-07-30 20:51:26.711626 - Finished PERMANOVA</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Permutation test for adonis under reduced model
@@ -1214,9 +1214,9 @@ Caused by warning:
 <div class="cell">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>bacteroidesRegression1 <span class="ot">&lt;-</span> infants <span class="sc">%&gt;%</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_transform</span>(<span class="st">"compositional"</span>, <span class="at">rank =</span> <span class="st">"genus"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_transform</span>(<span class="st">"log2"</span>, <span class="at">zero_replace =</span> <span class="st">"halfmin"</span>, <span class="at">chain =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_model</span>(</span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"lm"</span>, <span class="at">rank =</span> <span class="st">"genus"</span>,</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_model</span>(</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"lm"</span>, <span class="at">rank =</span> <span class="st">"genus"</span>,</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">trans =</span> <span class="st">"log2"</span>, <span class="at">trans_args =</span> <span class="fu">list</span>(<span class="at">zero_replace =</span> <span class="st">"halfmin"</span>),</span>
 <span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxa =</span> <span class="st">"Bacteroides"</span>, <span class="at">variables =</span> <span class="st">"birth_mode"</span>,</span>
 <span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">return_psx =</span> <span class="cn">FALSE</span></span>
 <span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
@@ -1282,9 +1282,9 @@ F-statistic: 109.6 on 1 and 304 DF,  p-value: &lt; 2.2e-16</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>bacteroidesRegression2 <span class="ot">&lt;-</span> infants <span class="sc">%&gt;%</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_transform</span>(<span class="st">"compositional"</span>, <span class="at">rank =</span> <span class="st">"genus"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_transform</span>(<span class="st">"log2"</span>, <span class="at">zero_replace =</span> <span class="st">"halfmin"</span>, <span class="at">chain =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_model</span>(</span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"lm"</span>, <span class="at">rank =</span> <span class="st">"genus"</span>, <span class="at">taxa =</span> <span class="st">"Bacteroides"</span>,</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_model</span>(</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"lm"</span>, <span class="at">rank =</span> <span class="st">"genus"</span>, <span class="at">taxa =</span> <span class="st">"Bacteroides"</span>,</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">trans =</span> <span class="st">"log2"</span>, <span class="at">trans_args =</span> <span class="fu">list</span>(<span class="at">zero_replace =</span> <span class="st">"halfmin"</span>),</span>
 <span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">variables =</span> <span class="fu">c</span>(<span class="st">"C_section"</span>, <span class="st">"Female"</span>, <span class="st">"Birth_weight_Z"</span>, <span class="st">"Reads_Z"</span>),</span>
 <span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">return_psx =</span> <span class="cn">FALSE</span></span>
 <span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
@@ -1386,9 +1386,9 @@ F-statistic: 28.55 on 4 and 286 DF,  p-value: &lt; 2.2e-16</code></pre>
 <span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_prepend_ranks</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_transform</span>(<span class="st">"compositional"</span>, <span class="at">rank =</span> <span class="st">"species"</span>, <span class="at">keep_counts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_filter</span>(<span class="at">min_prevalence =</span> <span class="fl">0.1</span>, <span class="at">undetected =</span> <span class="dv">0</span>, <span class="at">use_counts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tax_transform</span>(<span class="at">trans =</span> <span class="st">"log2"</span>, <span class="at">chain =</span> <span class="cn">TRUE</span>, <span class="at">zero_replace =</span> <span class="st">"halfmin"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">taxatree_models</span>(</span>
-<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> lm,</span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">taxatree_models</span>(</span>
+<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> lm,</span>
+<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">trans =</span> <span class="st">"log2"</span>, <span class="at">trans_args =</span> <span class="fu">list</span>(<span class="at">zero_replace =</span> <span class="st">"halfmin"</span>),</span>
 <span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ranks =</span> <span class="fu">c</span>(<span class="st">"phylum"</span>, <span class="st">"class"</span>, <span class="st">"order"</span>, <span class="st">"family"</span>, <span class="st">"genus"</span>, <span class="st">"species"</span>),</span>
 <span id="cb68-11"><a href="#cb68-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">variables =</span> <span class="fu">c</span>(<span class="st">"C_section"</span>, <span class="st">"Female"</span>, <span class="st">"Birth_weight_Z"</span>, <span class="st">"Reads_Z"</span>)</span>
 <span id="cb68-12"><a href="#cb68-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1406,7 +1406,7 @@ tax_table()   Taxonomy Table:    [ 39 taxa by 6 taxonomic ranks ]
 otu_get(counts = TRUE)       [ 39 taxa and 306 samples ]
 
 psExtra info:
-tax_agg = "species" tax_trans = "compositional&amp;log2" 
+tax_agg = "species" tax_trans = "compositional" 
 
 taxatree_models list:
 Ranks: phylum/class/order/family/genus/species</code></pre>
@@ -1430,7 +1430,7 @@ tax_table()   Taxonomy Table:    [ 39 taxa by 6 taxonomic ranks ]
 otu_get(counts = TRUE)       [ 39 taxa and 306 samples ]
 
 psExtra info:
-tax_agg = "species" tax_trans = "compositional&amp;log2" 
+tax_agg = "species" tax_trans = "compositional" 
 
 taxatree_stats dataframe:
 89 taxa at 6 ranks: phylum, class, order, family, genus, species 
@@ -1443,16 +1443,16 @@ taxatree_stats dataframe:
 <pre><code># A tibble: 356 × 8
    term           taxon      rank  formula estimate std.error statistic  p.value
    &lt;fct&gt;          &lt;chr&gt;      &lt;fct&gt; &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
- 1 C_section      p: Proteo… phyl… `p: Pr…  -3.44       1.31    -2.62   9.23e- 3
- 2 Female         p: Proteo… phyl… `p: Pr…   0.595      1.29     0.460  6.46e- 1
- 3 Birth_weight_Z p: Proteo… phyl… `p: Pr…   0.0179     0.640    0.0279 9.78e- 1
- 4 Reads_Z        p: Proteo… phyl… `p: Pr…  -1.22       0.659   -1.86   6.44e- 2
- 5 C_section      p: Actino… phyl… `p: Ac… -16.9        2.37    -7.12   8.98e-12
- 6 Female         p: Actino… phyl… `p: Ac…  -2.80       2.33    -1.20   2.30e- 1
- 7 Birth_weight_Z p: Actino… phyl… `p: Ac…   1.65       1.15     1.43   1.55e- 1
- 8 Reads_Z        p: Actino… phyl… `p: Ac…  -2.86       1.19    -2.41   1.67e- 2
- 9 C_section      p: Firmic… phyl… `p: Fi…  15.3        4.21     3.62   3.43e- 4
-10 Female         p: Firmic… phyl… `p: Fi…   0.741      4.15     0.179  8.58e- 1
+ 1 C_section      p: Proteo… phyl… `p: Pr…  -3.72       0.812   -4.58   7.01e- 6
+ 2 Female         p: Proteo… phyl… `p: Pr…  -0.0684     0.800   -0.0855 9.32e- 1
+ 3 Birth_weight_Z p: Proteo… phyl… `p: Pr…  -0.253      0.396   -0.638  5.24e- 1
+ 4 Reads_Z        p: Proteo… phyl… `p: Pr…  -0.369      0.408   -0.905  3.66e- 1
+ 5 C_section      p: Actino… phyl… `p: Ac…  -4.25       0.739   -5.75   2.25e- 8
+ 6 Female         p: Actino… phyl… `p: Ac…  -0.439      0.728   -0.603  5.47e- 1
+ 7 Birth_weight_Z p: Actino… phyl… `p: Ac…   0.293      0.361    0.813  4.17e- 1
+ 8 Reads_Z        p: Actino… phyl… `p: Ac…  -0.876      0.371   -2.36   1.90e- 2
+ 9 C_section      p: Firmic… phyl… `p: Fi…   2.43       0.342    7.12   8.74e-12
+10 Female         p: Firmic… phyl… `p: Fi…   0.697      0.337    2.07   3.95e- 2
 # ℹ 346 more rows</code></pre>
 </div>
 </div>
@@ -1474,16 +1474,16 @@ taxatree_stats dataframe:
 # Groups:   rank [6]
    term  taxon rank  formula estimate std.error statistic  p.value p.adj.BH.rank
    &lt;fct&gt; &lt;chr&gt; &lt;fct&gt; &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;         &lt;dbl&gt;
- 1 C_se… p: P… phyl… `p: Pr…  -3.44       1.31    -2.62   9.23e- 3      2.95e- 2
- 2 Fema… p: P… phyl… `p: Pr…   0.595      1.29     0.460  6.46e- 1      7.38e- 1
- 3 Birt… p: P… phyl… `p: Pr…   0.0179     0.640    0.0279 9.78e- 1      9.78e- 1
- 4 Read… p: P… phyl… `p: Pr…  -1.22       0.659   -1.86   6.44e- 2      1.47e- 1
- 5 C_se… p: A… phyl… `p: Ac… -16.9        2.37    -7.12   8.98e-12      7.19e-11
- 6 Fema… p: A… phyl… `p: Ac…  -2.80       2.33    -1.20   2.30e- 1      3.07e- 1
- 7 Birt… p: A… phyl… `p: Ac…   1.65       1.15     1.43   1.55e- 1      2.48e- 1
- 8 Read… p: A… phyl… `p: Ac…  -2.86       1.19    -2.41   1.67e- 2      4.46e- 2
- 9 C_se… p: F… phyl… `p: Fi…  15.3        4.21     3.62   3.43e- 4      1.83e- 3
-10 Fema… p: F… phyl… `p: Fi…   0.741      4.15     0.179  8.58e- 1      9.16e- 1
+ 1 C_se… p: P… phyl… `p: Pr…  -3.72       0.812   -4.58   7.01e- 6      2.81e- 5
+ 2 Fema… p: P… phyl… `p: Pr…  -0.0684     0.800   -0.0855 9.32e- 1      9.32e- 1
+ 3 Birt… p: P… phyl… `p: Pr…  -0.253      0.396   -0.638  5.24e- 1      6.45e- 1
+ 4 Read… p: P… phyl… `p: Pr…  -0.369      0.408   -0.905  3.66e- 1      6.39e- 1
+ 5 C_se… p: A… phyl… `p: Ac…  -4.25       0.739   -5.75   2.25e- 8      1.20e- 7
+ 6 Fema… p: A… phyl… `p: Ac…  -0.439      0.728   -0.603  5.47e- 1      6.45e- 1
+ 7 Birt… p: A… phyl… `p: Ac…   0.293      0.361    0.813  4.17e- 1      6.39e- 1
+ 8 Read… p: A… phyl… `p: Ac…  -0.876      0.371   -2.36   1.90e- 2      5.07e- 2
+ 9 C_se… p: F… phyl… `p: Fi…   2.43       0.342    7.12   8.74e-12      6.99e-11
+10 Fema… p: F… phyl… `p: Fi…   0.697      0.337    2.07   3.95e- 2      9.03e- 2
 # ℹ 346 more rows</code></pre>
 </div>
 </div>
@@ -1551,15 +1551,15 @@ Long session_info output
 <pre><code>─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.0 (2023-04-21)
- os       macOS Ventura 13.3.1
+ os       macOS Ventura 13.5
  system   aarch64, darwin20
  ui       X11
  language (EN)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
- tz       Europe/Prague
- date     2023-05-24
- pandoc   3.0.1 @ /opt/homebrew/bin/ (via rmarkdown)
+ tz       Europe/Amsterdam
+ date     2023-07-30
+ pandoc   3.1.1 @ /Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
  package          * version   date (UTC) lib source
@@ -1571,7 +1571,7 @@ Long session_info output
  biomformat         1.28.0    2023-04-25 [1] RSPM (R 4.3.0)
  Biostrings         2.68.0    2023-04-25 [1] RSPM (R 4.3.0)
  bitops             1.0-7     2021-04-24 [1] CRAN (R 4.3.0)
- broom              1.0.4     2023-03-11 [1] CRAN (R 4.3.0)
+ broom              1.0.5     2023-06-09 [1] CRAN (R 4.3.0)
  ca                 0.71.1    2020-01-24 [1] CRAN (R 4.3.0)
  cachem             1.0.8     2023-05-01 [1] CRAN (R 4.3.0)
  Cairo              1.6-0     2022-07-05 [1] CRAN (R 4.3.0)
@@ -1587,7 +1587,7 @@ Long session_info output
  crayon             1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
  data.table         1.14.8    2023-02-17 [1] CRAN (R 4.3.0)
  devtools           2.4.5     2022-10-11 [1] CRAN (R 4.3.0)
- digest             0.6.31    2022-12-11 [1] CRAN (R 4.3.0)
+ digest             0.6.33    2023-07-07 [1] CRAN (R 4.3.0)
  doParallel         1.0.17    2022-02-07 [1] CRAN (R 4.3.0)
  dplyr            * 1.1.2     2023-04-20 [1] CRAN (R 4.3.0)
  ellipsis           0.3.2     2021-04-29 [1] CRAN (R 4.3.0)
@@ -1614,12 +1614,12 @@ Long session_info output
  hms                1.1.3     2023-03-21 [1] CRAN (R 4.3.0)
  htmltools          0.5.5     2023-03-23 [1] CRAN (R 4.3.0)
  htmlwidgets        1.6.2     2023-03-17 [1] CRAN (R 4.3.0)
- httpuv             1.6.9     2023-02-14 [1] CRAN (R 4.3.0)
- igraph             1.4.2     2023-04-07 [1] CRAN (R 4.3.0)
+ httpuv             1.6.11    2023-05-11 [1] CRAN (R 4.3.0)
+ igraph             1.5.0     2023-06-16 [1] CRAN (R 4.3.0)
  IRanges            2.34.0    2023-04-25 [1] RSPM (R 4.3.0)
  iterators          1.0.14    2022-02-05 [1] CRAN (R 4.3.0)
- jsonlite           1.8.4     2022-12-06 [1] CRAN (R 4.3.0)
- knitr              1.42      2023-01-25 [1] CRAN (R 4.3.0)
+ jsonlite           1.8.7     2023-06-29 [1] CRAN (R 4.3.0)
+ knitr              1.43      2023-05-25 [1] CRAN (R 4.3.0)
  labeling           0.4.2     2020-10-20 [1] CRAN (R 4.3.0)
  later              1.3.1     2023-05-02 [1] CRAN (R 4.3.0)
  lattice            0.21-8    2023-04-05 [1] CRAN (R 4.3.0)
@@ -1627,12 +1627,12 @@ Long session_info output
  lubridate        * 1.9.2     2023-02-10 [1] CRAN (R 4.3.0)
  magrittr           2.0.3     2022-03-30 [1] CRAN (R 4.3.0)
  MASS               7.3-60    2023-05-04 [1] CRAN (R 4.3.0)
- Matrix             1.5-4     2023-04-04 [1] CRAN (R 4.3.0)
- matrixStats        0.63.0    2022-11-18 [1] CRAN (R 4.3.0)
+ Matrix             1.6-0     2023-07-08 [1] CRAN (R 4.3.0)
+ matrixStats        1.0.0     2023-06-02 [1] CRAN (R 4.3.0)
  memoise            2.0.1     2021-11-26 [1] CRAN (R 4.3.0)
- mgcv               1.8-42    2023-03-02 [1] CRAN (R 4.3.0)
+ mgcv               1.9-0     2023-07-11 [1] CRAN (R 4.3.0)
  microbiome         1.22.0    2023-04-25 [1] RSPM (R 4.3.0)
- microViz         * 0.10.10   2023-05-19 [1] Github (david-barnett/microViz@2a021f2)
+ microViz         * 0.11.0    2023-07-28 [1] local
  mime               0.12      2021-09-28 [1] CRAN (R 4.3.0)
  miniUI             0.1.1.1   2018-05-18 [1] CRAN (R 4.3.0)
  multtest           2.56.0    2023-04-25 [1] RSPM (R 4.3.0)
@@ -1642,40 +1642,40 @@ Long session_info output
  permute            0.9-7     2022-01-27 [1] CRAN (R 4.3.0)
  phyloseq         * 1.44.0    2023-04-25 [1] RSPM (R 4.3.0)
  pillar             1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
- pkgbuild           1.4.0     2022-11-27 [1] CRAN (R 4.3.0)
+ pkgbuild           1.4.2     2023-06-26 [1] CRAN (R 4.3.0)
  pkgconfig          2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
- pkgload            1.3.2     2022-11-16 [1] CRAN (R 4.3.0)
+ pkgload            1.3.2.1   2023-07-08 [1] CRAN (R 4.3.0)
  plyr               1.8.8     2022-11-11 [1] CRAN (R 4.3.0)
  png                0.1-8     2022-11-29 [1] CRAN (R 4.3.0)
  polyclip           1.10-4    2022-10-20 [1] CRAN (R 4.3.0)
  prettyunits        1.1.1     2020-01-24 [1] CRAN (R 4.3.0)
- processx           3.8.1     2023-04-18 [1] CRAN (R 4.3.0)
+ processx           3.8.2     2023-06-30 [1] CRAN (R 4.3.0)
  profvis            0.3.8     2023-05-02 [1] CRAN (R 4.3.0)
  promises           1.2.0.1   2021-02-11 [1] CRAN (R 4.3.0)
  ps                 1.7.5     2023-04-18 [1] CRAN (R 4.3.0)
  purrr            * 1.0.1     2023-01-10 [1] CRAN (R 4.3.0)
  R6                 2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
  RColorBrewer       1.1-3     2022-04-03 [1] CRAN (R 4.3.0)
- Rcpp               1.0.10    2023-01-22 [1] CRAN (R 4.3.0)
+ Rcpp               1.0.11    2023-07-06 [1] CRAN (R 4.3.0)
  RCurl              1.98-1.12 2023-03-27 [1] CRAN (R 4.3.0)
  readr            * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
  registry           0.5-1     2019-03-05 [1] CRAN (R 4.3.0)
- remotes            2.4.2     2021-11-30 [1] CRAN (R 4.3.0)
+ remotes            2.4.2.1   2023-07-18 [1] CRAN (R 4.3.0)
  reshape2           1.4.4     2020-04-09 [1] CRAN (R 4.3.0)
  rhdf5              2.44.0    2023-04-25 [1] RSPM (R 4.3.0)
  rhdf5filters       1.12.1    2023-04-30 [1] RSPM (R 4.3.0)
  Rhdf5lib           1.22.0    2023-04-25 [1] RSPM (R 4.3.0)
  rjson              0.2.21    2022-01-09 [1] CRAN (R 4.3.0)
  rlang              1.1.1     2023-04-28 [1] CRAN (R 4.3.0)
- rmarkdown          2.21      2023-03-26 [1] CRAN (R 4.3.0)
- rstudioapi         0.14      2022-08-22 [1] CRAN (R 4.3.0)
+ rmarkdown          2.23      2023-07-01 [1] CRAN (R 4.3.0)
+ rstudioapi         0.15.0    2023-07-07 [1] CRAN (R 4.3.0)
  Rtsne              0.16      2022-04-17 [1] CRAN (R 4.3.0)
  S4Vectors          0.38.1    2023-05-02 [1] RSPM (R 4.3.0)
  scales             1.2.1     2022-08-20 [1] CRAN (R 4.3.0)
  seriation        * 1.4.2     2023-03-08 [1] CRAN (R 4.3.0)
  sessioninfo        1.2.2     2021-12-06 [1] CRAN (R 4.3.0)
  shape              1.4.6     2021-05-19 [1] CRAN (R 4.3.0)
- shiny            * 1.7.4     2022-12-15 [1] CRAN (R 4.3.0)
+ shiny            * 1.7.4.1   2023-07-06 [1] CRAN (R 4.3.0)
  stringi            1.7.12    2023-01-11 [1] CRAN (R 4.3.0)
  stringr          * 1.5.0     2022-12-02 [1] CRAN (R 4.3.0)
  survival           3.5-5     2023-03-12 [1] CRAN (R 4.3.0)
@@ -1687,11 +1687,11 @@ Long session_info output
  timechange         0.2.0     2023-01-11 [1] CRAN (R 4.3.0)
  TSP                1.2-4     2023-04-04 [1] CRAN (R 4.3.0)
  tweenr             2.0.2     2022-09-06 [1] CRAN (R 4.3.0)
- tzdb               0.3.0     2022-03-28 [1] CRAN (R 4.3.0)
+ tzdb               0.4.0     2023-05-12 [1] CRAN (R 4.3.0)
  urlchecker         1.0.1     2021-11-30 [1] CRAN (R 4.3.0)
- usethis            2.1.6     2022-05-25 [1] CRAN (R 4.3.0)
+ usethis            2.2.2     2023-07-06 [1] CRAN (R 4.3.0)
  utf8               1.2.3     2023-01-31 [1] CRAN (R 4.3.0)
- vctrs              0.6.2     2023-04-19 [1] CRAN (R 4.3.0)
+ vctrs              0.6.3     2023-06-14 [1] CRAN (R 4.3.0)
  vegan              2.6-4     2022-10-11 [1] CRAN (R 4.3.0)
  viridis            0.6.3     2023-05-03 [1] CRAN (R 4.3.0)
  viridisLite        0.4.2     2023-05-02 [1] CRAN (R 4.3.0)
