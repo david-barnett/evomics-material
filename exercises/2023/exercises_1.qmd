@@ -1,0 +1,733 @@
+---
+title: "Evomics Workshop part 1"
+subtitle: "Microbiome analysis with microViz"
+author: "David Barnett"
+date: "24 May 2023"
+format: 
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    fontsize: 1em
+    toc: true
+    toc-depth: 4
+    fig-width: 6
+    fig-height: 4
+    dpi: 120
+---
+
+## Instructions 👋
+
+-   These exercises will introduce some core concepts in microbiome analysis, using example data
+-   Follow along by writing code in your own R script (or an R Markdown notebook, or a Quarto doc)
+
+```{r}
+# Code blocks have a copy button in the top right -> -> -> -> ->
+cat("- Copy and modify the code examples\n- Try to understand what it does, and play around!")
+```
+
+::: {.callout-important collapse="true"}
+### Click on these collapsed callout blocks for more info
+
+**Topics for part 1:**
+
+1.  phyloseq objects for microbiome data
+2.  Stacked bar charts for visualizing microbiome compositions
+3.  Ecosystem diversity indices
+:::
+
+::: {.callout-note collapse="true"}
+### Getting help
+
+- The [microViz website](https://david-barnett.github.io/microViz/) has help pages for every function (and more tutorials)
+- Ask your neighbour, a TA, or me
+- ChatGPT doesn't know anything about microViz...
+
+:::
+
+------------------------------------------------------------------------
+
+## Setup ⚙️
+
+1. Open your RStudio server instance
+2. Find the microbiome analysis folder
+3. Click on the file ending **.Rproj** to open an RStudio project 
+4. Go to the RStudio **"Git"** tab, and click on **Pull** (this will ensure you have this year's example data)
+
+::: {.callout-important}
+### Emergency bug fixing step 
+
+**As a last minute bug fix 🐛 please now reinstall the ggplot2 and microViz packages**
+
+```r
+# copy this code into the R console and run it
+install.packages("ggplot2", repos = "https://cloud.r-project.org") 
+```
+
+```r
+install.packages(
+  "microViz",
+  repos = c(davidbarnett = "https://david-barnett.r-universe.dev", getOption("repos"))
+)
+```
+
+:::
+
+5. Open a new R script / notebook / quarto doc
+6. Load the R packages we will be using:
+
+```{r message=FALSE}
+library(tidyverse)
+library(phyloseq)
+library(microViz)
+library(shiny)
+```
+
+7. Explore some microbiomes!
+
+-   We'll use two example datasets in this evening's exercises
+-   Both contain gut microbiome taxonomic composition data, from stool samples
+-   The first is from a 2019 study of antibiotic administration in mice
+-   The mouse antibiotics study used 16S rRNA gene amplicon sequencing
+    -   They used Illumina MiSeq and processed the data into ASVs using DADA2
+
+```{r}
+# Check data_directory is correct path on AMI to data folder
+data_directory <- here::here("data") 
+
+# A manageable small subset of the mouse data to start practicing with
+mice <- readRDS(file.path(data_directory, "mice.rds"))
+
+# And the full dataset, we will use it later - ignore it for now
+allMice <- readRDS(file.path(data_directory, "allMice.rds"))
+```
+
+-   The second is from a large birth cohort study, containing human infants born by C-section or vaginal delivery
+-   The birth cohort study data is shotgun metagenomics data
+    -   They used Illumina HiSeq and inferred the abundance of species-like features with metaphlan3.
+
+<!-- (Note: not metaphlan3 in the paper, but available from curatedMetagenomicData package/project) -->
+
+```{r}
+data("shao19", package = "microViz")
+```
+
+-   All analysis approaches we'll learn this evening can be applied to both kinds of data.
+-   These methods are also appropriate for microbiome data from other environments, not just the gut microbiota! 
+
+*microViz has been used by groups analysing microbiomes associated with Antarctic sponges, Kiwi birds, and wastewater samples, amongst other things.*
+
+## Intro to phyloseq 🦠
+
+We will start with some processed microbiota data from the mouse study.
+
+::: {.callout-note collapse="true"}
+### Click here for details about the mice dataset:
+
+-   The data originate from [a study on the effects of oral antibiotics on West Nile Virus (WNV) infection](https://www.ncbi.nlm.nih.gov/pubmed/29590614)
+-   Sequence data was generated from extracted DNA from mouse stool samples.
+-   DNA was amplified using primers specific for the 16S rRNA gene V4 region using primers 515F/806R.
+-   Each mouse was caged separately.
+
+::: {style="display: flex;"}
+::: {style="width: 70%;"}
+**The study followed WNV infection after the following treatments:**
+
+1)  **Ampicillin** (Amp): <https://en.wikipedia.org/wiki/Ampicillin>
+2)  **Metronidazole** (Metro): <https://en.wikipedia.org/wiki/Metronidazole>
+3)  **Ampicillin** + **Metronidazole** (AmpMetro)
+4)  **Koolaid Control** (Vehicle): *Antibiotics taste bad, so Koolaid is added as a sweetener!*
+:::
+
+::: {style="width: 30%;"}
+![*Yum, Koolaid!*](images/lab-mouse.jpg){fig-alt="Lab mouse enjoying Koolaid. Imagined by Lexica." fig-align="center" width="1.2in"}
+:::
+:::
+
+Treatments were supplied ad libitum for 2 weeks prior to viral infection and maintained for 2 weeks post-infection.
+
+-   The primary outcome of the study was mouse survival.
+-   Each treatment group had two subgroups:
+    a)  mice infected with WNV, via a subcutaneous foot pad injection
+    b)  mice left uninfected, as another set of controls (we will not use these samples at the start)
+:::
+
+`mice` is a `phyloseq` S4 object, containing a small subset of these data.
+
+-   Printing the object shows you some basic info.
+-   It also names three functions you can use to access the data inside.
+
+```{r}
+mice
+```
+
+-   Have a look around inside the different parts of this object using accessor functions.
+-   phyloseq and microViz both provide accessor functions, some to try are included below.
+
+``` r
+samdat_tbl()
+sample_variables()
+otu_get()
+nsamples()
+ntaxa()
+sample_names()
+taxa_names() 
+# don't forget you can use head() to truncate long output!
+```
+
+::: callout-tip
+### Tip: get an interactive View()
+
+-   You can also try using the `View()` function on each part
+-   But remember not to leave interactive functions like `View` in your script!
+:::
+
+::: {.callout-warning collapse="true"}
+### The \@ symbol, a risky shortcut?
+
+-   You can also use the `@` symbol to access the slots of S4 objects e.g. phyloseq
+-   This can be a quick shortcut when exploring a data object interactively
+
+```{r}
+mice@otu_table[1:5, 1:5]
+```
+
+``` r
+mice@sam_data %>% View()
+```
+
+-   But, it is slightly risky to directly access the internal structure of S4 objects!
+-   Package authors may change the object's internal structure when they release a new version, breaking your code.
+-   **So in your scripts, prefer accessor functions over `@`**
+:::
+
+### Filling gaps in the taxonomy table
+
+-   You might have noticed the the taxonomy table has some `NA` values.
+-   This often occurs when an ASV cannot be uniquely classified at the Genus level.
+-   The short 16S region sequenced may only allow a unique classification at Family rank or above.
+
+```{r}
+tax_table(mice)[1:5, ]
+```
+
+-   We need to fill those gaps!
+    and we can do this with `tax_fix()`
+
+-   `tax_fix()` copies info down from a higher rank, to fill the gaps.
+
+-   First, let's look at the taxonomy table interactively, with `tax_fix_interactive()`
+
+```{r}
+# tax_fix_interactive(mice) # run this in the R Console 
+# You may need to allow popups on your browser!
+```
+
+::: callout-warning
+### Press Stop!
+
+-   Running `tax_fix_interactive(mice)` will open a new web browser tab.
+-   When you are done looking, click the **red STOP button in the R console**!
+:::
+
+-   Let's update our `mice` phyloseq object with this fix.
+
+```{r}
+mice <- tax_fix(mice, verbose = FALSE)
+```
+
+-   Check the first few taxa now look correct?
+
+``` r
+# Hint: use tax_table and head
+```
+
+------------------------------------------------------------------------
+
+## Plot some microbiome compositions!
+
+-   Okay, so how do we look at the microbiota abundance data?
+-   We're first going to make stacked compositional bar charts using the `microViz` package, `comp_barplot()` function.
+
+### Stacked compositional barplots
+
+-   Lets start with a smaller subset of the data.
+-   Just the control group (Vehicle treatment) at day 13.
+
+```{r}
+# We can filter the samples like this, using the sample_data information
+mice %>% ps_filter(treatment == "Vehicle") # similar to a dplyr filter!
+```
+
+::: callout-tip
+### Tip: Forgot the variable's levels?
+
+``` r
+# Use table()
+mice@sam_data$treatment %>% table()
+```
+:::
+
+```{r}
+mice %>%
+  ps_filter(treatment == "Vehicle") %>%
+  tax_names2rank("ASV") %>% 
+  comp_barplot(
+    tax_level = "ASV", n_taxa = 12, 
+    bar_width = 0.7, sample_order = "asis"
+  )
+```
+
+-   The ASVs have uninformative numeric IDs, but we can fix that with `tax_rename()`
+
+```{r}
+mice %>% 
+  ps_filter(treatment == "Vehicle") %>% 
+  tax_rename(rank = "Family", pad_digits = 2) %>% # this changes the taxa_names
+  tax_names2rank("ASV") %>%
+  comp_barplot(
+    tax_level = "ASV", n_taxa = 12, 
+    bar_width = 0.7, sample_order = "asis"
+  )
+```
+
+::: {.callout-tip collapse="true"}
+### Tip: What is that function?
+
+When you see a function you are unfamiliar with, e.g. `tax_names2rank()`, look for documentation:
+
+1.  Run `?tax_names2rank` in the console, or click on the function and press the F1 key (F2 shows the source code!)
+2.  Many packages have nice websites: search for the function reference page, e.g. <https://david-barnett.github.io/microViz/reference/index.html>
+3.  Test out the function in isolation, does it do what you expected?
+
+``` r
+mice %>% 
+  tax_rename(rank = "Family", pad_digits = 2) %>% 
+  taxa_names() %>% 
+  head(12)
+```
+:::
+
+### Aggregating taxa
+
+-   Sadly we don't have enough distinct colours to show all the unique ASVs.
+-   Instead we can **aggregate** the counts at a higher taxonomic rank, e.g. Families.
+
+```{r}
+mice %>%
+  ps_filter(treatment == "Vehicle") %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 9, 
+    sample_order = "asis", bar_width = 0.7,
+    merge_other = FALSE
+  ) 
+```
+
+::: {.callout-tip collapse="true"}
+### Tip: Use ggsave to save your plots?
+
+-   Viewing your plots in the RStudio Plots window is okay for practice
+-   But don't copy paste them to save them, as there is a much better way!
+
+```{r}
+# Assign your plot to an R object
+miceBarsD7koolaid <- mice %>%
+  ps_filter(treatment == "Vehicle") %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 9, 
+    sample_order = "asis", bar_width = 0.7,
+    merge_other = FALSE
+  )
+```
+
+
+```r
+# Write the plot to a file, with ggsave
+ggsave(
+  filename = "mice-barchart-day7-WNV.pdf",
+  plot = miceBarsD7koolaid, width = 6.5, height = 3.5
+)
+```
+
+**Be sure to carefully adjust the sizing and resolution of your plots for your paper or presentation!**
+:::
+
+-   Try aggregating at other ranks, e.g. Class.
+
+::: {.callout-caution collapse="true"}
+### Fickle Phyla, beware!
+
+-   There were major changes to bacterial taxonomy last year
+-   Many of the phylum names in our dataset are now officially outdated.
+-   Currently, some research is published with the old names and some with the new names.
+-   Here are the key changes to be aware of for the human gut microbiota
+    -   *Actinobacteria* is now *Actinomycetota*
+    -   *Bacteroidetes* is now *Bacteroidota*
+    -   *Proteobacteria* is now *Pseudomonadota* (!)
+    -   *Firmicutes* is now *Bacillota* (!?!)
+:::
+
+### Organising your bar charts
+
+-   Let's look at all of the data from day 7, from all treatment groups.
+-   We can add the ggplot2 `facet_wrap()` to our plot, to separate the treatment groups.
+
+```{r}
+#| fig-width: 7
+#| fig-height: 5
+mice %>% 
+  comp_barplot(
+    tax_level = "Family", n_taxa = 10, merge_other = FALSE,
+    sample_order = "asis", label = "cage"
+  ) +
+  facet_wrap(facets = vars(treatment), scales = "free") +
+  labs(
+    title = "Day 7 mouse fecal microbiota compositions",
+    x = "Mouse ID", y = "Relative Abundance"
+  ) +
+  coord_flip() 
+# coord_flip exchanges x and y axes, which can be more readable
+```
+
+::: {.callout-note collapse="true"}
+### Optional extension exercise: More mice data!
+
+**Not recommended for R or ggplot2 beginners.**
+
+This optional plotting exercise is more complex, and aims to exemplify the kind of complex manual arrangements enabled by comp_barplot.
+
+```{r}
+# Additional packages needed
+library(stringr)
+library(patchwork)
+```
+
+-   So far we looked just at one day of measurements, but stool samples were collected on multiple days.
+-   Let's grab the full dataset for more practice arranging our bar charts.
+
+```{r}
+allMice <- tax_fix(allMice, verbose = FALSE)
+allMice
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Code to set up a grid layout using cage numbers and letters
+#| fig-width: 7
+
+# Convert sample timings to a factor variable, for correct temporal ordering. 
+allMice <- allMice %>% 
+  ps_mutate(Days = factor(
+    x = treatment_days,
+    levels = paste0("D", c(".14", "0", "3", "7", "13", "16", "18", "20")),
+    labels = c("-14", "0", "3", "7", "13", "16", "18", "20")
+  ))
+
+# Separate the cage numbers and letters to allow a grid layout.
+allMice <- allMice %>% 
+  ps_mutate(
+    cage_number = stringr::str_extract(cage, "[1-9]"),
+    cage_letter = stringr::str_extract(cage, "[A-Z]")
+  )
+
+# Check the grid layout: plot the virus infected, vehicle control group
+allMice %>% 
+  ps_filter(virus == "WNV2000", treatment == "Vehicle") %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 13, x = 'Days',
+    bar_width = 0.8, merge_other = FALSE
+  ) +
+  facet_grid(cols = vars(cage_number), rows = vars(cage_letter))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Code to create a big plot of all samples from WNV-exposed mice
+#| eval: false
+
+# Create a list of identically themed and coloured plots with the group_by argument.
+plotList <- allMice %>% 
+  ps_mutate(group = paste(treatment, virus)) %>% 
+  comp_barplot(tax_level = "Family", n_taxa = 13, x = "Days", group_by = "group")
+
+# Arrange the WNV-exposed mice plots with patchwork, in 4 rows
+plotsWNV <- wrap_plots(plotList[grep(x = names(plotList), pattern = "WNV2000")]) 
+plotsWNV <- plotsWNV + plot_layout(guides = "collect", nrow = 4, heights = c(2,2,3,2))
+
+# Add faceting to all the plots in the list, with patchwork's `&` operator
+plotsWNV <- plotsWNV & facet_grid(cols = vars(cage_number), rows = vars(cage_letter))
+
+# Write these plots to a large image file!
+ggsave(plot = plotsWNV, filename = "WNVplots.pdf", height = 12, width = 8)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Exercise - write code for a plot of all control mice (no virus)
+# 
+```
+:::
+
+::: {.callout-note collapse="true"}
+### More barchart resources:
+
+More examples/tutorial of visualizing microbiome data using stacked barcharts can be found here: <https://david-barnett.github.io/microViz/articles/web-only/compositions.html>
+
+**Note: Bar charts often look better when you sort the samples by similarity.**
+
+-   The webpage mentions using Bray-Curtis distances and hierarchical clustering to sort samples.
+-   We haven't discussed dissimilarity or distances yet, but we will in the next set of exercises!
+-   For now, just appreciate that it can make it easier to see patterns in your compositions!
+:::
+
+------------------------------------------------------------------------
+
+## Ecosystem diversity
+
+How diverse is the bacterial microbiome of each sample?
+
+::: {.callout-note collapse="true"}
+### Why is diversity interesting?
+
+#### Biologically
+
+-   Higher diversity ecosystems are probably more resilient to perturbations
+-   Lower gut microbiome diversity is related to worse health in adult humans
+-   BUT: `diverse == healthy` is not `TRUE` for all ecosystems (e.g. early infant gut microbiome)
+-   So, consider your own data and diversity hypotheses carefully
+
+#### Practically
+
+-   Diversity indices provide a simple one number summary of each ecosystem
+-   This makes it relatively easy to compare samples, and do statistical testing
+:::
+
+### Richness
+
+-   The simplest richness measure is just counting, a.k.a. "Observed Richness".
+-   Let's compute the observed richness and sort and label some samples.
+-   `ps_calc_richness()` computes the index for each sample and adds it to your sample_data
+
+```{r}
+mice %>%
+  ps_filter(treatment %in% c("Vehicle", "AmpMetro")) %>%
+  ps_calc_richness(rank = "Family", index = "observed", varname = "N_Families") %>%
+  ps_arrange(N_Families) %>% 
+  comp_barplot(
+    tax_level = "Family", n_taxa = 14, label = "N_Families", bar_width = 0.8,
+    sample_order = "asis", merge_other = FALSE, facet_by = "treatment"
+  ) +
+  coord_flip()
+```
+
+### Diversity
+
+-   A true measure of ecosystem diversity will also consider the evenness of the ecosystem.
+-   A rich ecosystem predominated by one taxon is still intuitively a less diverse ecosystem than one with an even distribution of the same number of taxa.
+
+::: panel-tabset
+#### 1. Shannon Index
+
+```{r}
+#| code-fold: true
+#| code-summary: Code to compute Shannon Index and make a barplot
+mice %>%
+  ps_filter(treatment %in% c("Vehicle", "AmpMetro")) %>%
+  ps_calc_diversity(rank = "Family", index = "shannon", varname = "Shannon_Family") %>%
+  ps_arrange(Shannon_Family) %>% 
+  ps_mutate(Shannon = formatC(Shannon_Family, digits = 2, format = "f")) %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 14, label = "Shannon", bar_width = 0.8,
+    sample_order = "asis", merge_other = FALSE, facet_by = "treatment"
+  ) +
+  coord_flip()
+```
+
+-   The Shannon index is a commonly used diversity measure, with this formula: $H = -\sum_{i=1}^Np_i\ln p_i$
+-   Shannon index is often is denoted with $H$, and here $p$ denotes proportion of the $i$'th taxon.
+
+::: {.callout-note collapse="true"}
+### Explanation of the Shannon index formula
+
+-   For each taxon $i$, you multiply its proportional abundance $p_i$ by the natural log of that proportion $\ln p_i$, and sum those values.
+-   Try it out for yourself to convince yourself you get larger (negative) values for higher proportions.
+-   The highest value you can achieve with $N$ taxa occurs with equal proportions
+-   e.g. with 20 taxa, maximum diversity occurs if each has a proportion of 5%
+-   Lastly, you change the sign of the result to a positive number, for ease of interpretation
+-   This just makes more intuitive sense: as higher positive numbers indicates higher diversity.
+:::
+
+#### 2. Effective Shannon Diversity
+
+```{r}
+#| code-fold: true
+#| code-summary: Code to compute Exponential Shannon and make a barplot
+mice %>%
+  ps_filter(treatment %in% c("Vehicle", "AmpMetro")) %>%
+  ps_calc_diversity(rank = "Family", index = "shannon", exp = TRUE, varname = "Exp_Shannon") %>%
+  ps_arrange(Exp_Shannon) %>% 
+  ps_mutate(Exp_Shannon = formatC(Exp_Shannon, digits = 2, format = "f")) %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 14, label = "Exp_Shannon", bar_width = 0.8,
+    sample_order = "asis", merge_other = FALSE, facet_by = "treatment"
+  ) +
+  coord_flip()
+```
+
+-   The exponent of the Shannon index $e^H$ represents the number of taxa that would be present in an evenly abundant ecosystem with the same Shannon index.
+
+::: {.callout-note collapse="true"}
+### Explanation of the Effective Shannon Diversity
+
+-   The numeric value of the Shannon index itself has no intuitive meaning.
+-   You can compare them, but can't easily interpret any one number.
+-   So, the concept of "effective numbers" of taxa is useful here.
+-   If your original ecosystem was actually perfectly even, then $e^H = N$
+-   Where N is the observed richness
+-   The more uneven an ecosystem, the further $e^H$ will be from $N$
+
+:::
+
+:::
+
+## Comparing Diversity
+
+-   Let us now compare the diversity of our samples.
+-   Perhaps we hypothesise that the mouse gut diversity differs after antibiotic treatment.
+
+```{r}
+miceShannonDf <- mice %>%
+  ps_calc_diversity(rank = "Family", index = "shannon", exp = TRUE, varname = "Exp_Shannon") %>%
+  samdat_tbl()
+```
+
+```{r}
+miceShannonDf %>%
+  ggplot(aes(y = Exp_Shannon, x = treatment, color = treatment)) +
+  geom_boxplot(alpha = 0.5, width = 0.5) +
+  geom_point(position = position_jitter(width = 0.1), alpha = 0.5, size = 2) +
+  scale_color_brewer(palette = "Set1", guide = NULL) +
+  labs(y = "Effective Shannon diversity (Family)", x = NULL) +
+  theme_bw()
+```
+
+-   The mice exposed to Ampicillin (± Metronidazole) appear to have higher diversity at this day 7 sample!
+
+```{r}
+# A simple statistical test supports this assertion
+miceShannonDf %>% 
+  mutate(Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)) %>% 
+  wilcox.test(formula = Exp_Shannon ~ Ampicillin, data = .)
+```
+
+- You can apply more complex statistical tests if you like
+- e.g. adjusting for covariates with linear regression, using `lm()`
+
+```{r}
+allMice %>%
+  ps_filter(treatment_days == "D7") %>%
+  ps_calc_diversity(rank = "Family", index = "shannon", exp = TRUE, varname = "Exp_Shannon") %>%
+  samdat_tbl() %>%
+  mutate(Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)) %>% 
+  lm(formula = Exp_Shannon ~ Ampicillin + virus, data = .) %>%
+  summary()
+```
+
+**Final activities for part 1:**
+
+-   Try making other diversity comparisons for yourself?
+-   Consider comparing ASV-level diversity?
+-   Does virus exposure influence diversity?
+-   What about comparing richness?
+-   Practice making plots and doing simple statistical tests.
+
+------------------------------------------------------------------------
+
+## Break Time! ☕️ ⌚️
+
+### You want more about diversity?
+
+::: {.callout-note collapse="true"}
+### Click here for additional notes on richness and readcount
+
+-   Simple measures like Observed Richness are sensitive to what ecologists call "sampling effort".
+-   For macroecologists, this is actually how much time/effort you spent trying to count all the organisms present in an ecosystem.
+-   In our case, the amount of total reads obtained represents the sampling effort: more reads, more effort.
+-   Indeed we can see that the samples with a much lower readcount have lower observed richness.
+-   Furthermore, as this richness estimate is based on a sample, and not the actual ecosystem, the richness estimate actually has quantifiable uncertainty too.
+
+```{r}
+mice %>%
+  ps_filter(treatment == "Amp") %>%
+  ps_calc_richness(rank = "Family", index = "observed", varname = "N families") %>%
+  comp_barplot(
+    tax_level = "Family", n_taxa = 12, label = "N families", bar_width = 0.7,
+    sample_order = "asis", merge_other = FALSE, tax_transform_for_plot = "identity"
+  )
+```
+
+```{r, fig.width=5, fig.height=3}
+mice %>%
+  tax_names2rank("ASV") %>% 
+  ps_calc_richness(rank = "ASV", index = "observed", varname = "ASVs") %>%
+  ps_mutate(readcount = sample_sums(mice)) %>%
+  samdat_tbl() %>%
+  ggplot(aes(readcount, ASVs)) +
+  geom_point(alpha = 0.4, size = 2.5) +
+  theme_bw(14)
+```
+
+**What to do?**
+
+1)  **Simple solution**: Ignore the problem. Whilst you can't interpret the richness of any individual sample as being correct, it is still usually valid to compare richness across groups of samples, as the readcount variation is only random noise, and should be uncorrelated with your grouping variable (but do check this).
+2)  **Harder solution**: Explore more rigorous methods like `breakaway` by Amy Willis and team. <https://www.frontiersin.org/articles/10.3389/fmicb.2019.02407/full>
+:::
+
+::: {.callout-note collapse="true"}
+### Click here for an extension activity with an IBD dataset.
+
+**This is an extension exercise, for anyone who is moving very quickly.**
+
+**Inflammatory Bowel Disease study**
+
+```{r}
+ibd <- corncob::ibd_phylo %>%
+  tax_mutate(Species = NULL) %>% # ibd_phylo Species column was blank -> deleted
+  ps_mutate(disease = ibd == "ibd", ibd = NULL) # adds disease state indicator variable
+```
+
+-   `ibd` is another phyloseq object containing 16S rRNA gene amplicon sequencing data 
+-   It is from a 2012 study of Inflammatory Bowel Disease in children and young adults
+-   It's "old" data: they used 454 Pyrosequencing, and clustered the raw sequences into "OTUs"
+-   Have a look at the data, like we did before for the `mice` dataset
+
+```{r}
+ibd
+```
+
+```{r}
+#
+```
+
+-   You can perform alpha diversity analysis: 
+-   Try comparing the alpha diversity of the IBD patients against the healthy controls.
+
+```{r}
+#
+```
+:::
+
+------------------------------------------------------------------------
+
+## Session info
+
+`session_info` records your package versions etc.
+This is useful for debugging / reproducing analysis.
+
+::: {.callout-note collapse="true"}
+### Long session_info output
+```{r}
+devtools::session_info()
+```
+
+:::
