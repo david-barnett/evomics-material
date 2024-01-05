@@ -2,7 +2,7 @@
 title: "Evomics Workshop part 2"
 subtitle: "Microbiome analysis with microViz"
 author: "David Barnett"
-date: "24 May 2023"
+date: "16 Jan 2024"
 format: 
   html:
     theme:
@@ -14,6 +14,7 @@ format:
     fig-width: 6
     fig-height: 4
     dpi: 120
+    embed-resources: true
 ---
 
 ## Welcome to Part 2 👋
@@ -65,6 +66,9 @@ shao19
 - Look at the rank names, sample data variables etc.
 
 ```{r}
+#
+#
+#
 #
 ```
 
@@ -279,7 +283,7 @@ But read the instructions first.
     -   Try out PCA, principal **components** analysis, which does NOT use distances
     -   We will not cover constrained and conditioned ordinations
     -   If you are interested in e.g. RDA, you can look this up later
-    -   See the [Guide to Statistical Analysis in Microbial Ecology](https://sites.google.com/site/mb3gustame/constrained-analyses/rda)
+    -   See the [Guide to Statistical Analysis in Microbial Ecology](https://sites.google.com/site/mb3gustame/constrained-analyses/redundancy-analysis)
 :::
 
 ``` r
@@ -556,7 +560,7 @@ Interestingly, samples on the right of the plot (which tend to be vaginally-deli
 ##### Cautiously
 
 - There are caveats and nuance to the interpretation of these plots, which are called PCA bi-plots
-- You can read more here: <https://sites.google.com/site/mb3gustame/indirect-gradient-analysis/pca>
+- You can read more here: <https://sites.google.com/site/mb3gustame/indirect-gradient-analysis/principal-components-analysis>
 
 ##### In general:
 
@@ -952,7 +956,7 @@ This is useful for debugging / reproducing analysis.
 ::: {.callout-note collapse="true"}
 ### Long session_info output
 ```{r}
-devtools::session_info()
+sessioninfo::session_info()
 ```
 
 :::

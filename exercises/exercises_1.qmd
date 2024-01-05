@@ -2,7 +2,7 @@
 title: "Evomics Workshop part 1"
 subtitle: "Microbiome analysis with microViz"
 author: "David Barnett"
-date: "24 May 2023"
+date: "16 Jan 2024"
 format: 
   html:
     theme:
@@ -14,9 +14,10 @@ format:
     fig-width: 6
     fig-height: 4
     dpi: 120
+    embed-resources: true
 ---
 
-## Instructions 👋
+## 👋 Instructions
 
 -   These exercises will introduce some core concepts in microbiome analysis, using example data
 -   Follow along by writing code in your own R script (or an R Markdown notebook, or a Quarto doc)
@@ -47,32 +48,12 @@ cat("- Copy and modify the code examples\n- Try to understand what it does, and 
 
 ------------------------------------------------------------------------
 
-## Setup ⚙️
+## ⚙️ Setup
 
 1. Open your RStudio server instance
 2. Find the microbiome analysis folder
 3. Click on the file ending **.Rproj** to open an RStudio project 
 4. Go to the RStudio **"Git"** tab, and click on **Pull** (this will ensure you have this year's example data)
-
-::: {.callout-important}
-### Emergency bug fixing step 
-
-**As a last minute bug fix 🐛 please now reinstall the ggplot2 and microViz packages**
-
-```r
-# copy this code into the R console and run it
-install.packages("ggplot2", repos = "https://cloud.r-project.org") 
-```
-
-```r
-install.packages(
-  "microViz",
-  repos = c(davidbarnett = "https://david-barnett.r-universe.dev", getOption("repos"))
-)
-```
-
-:::
-
 5. Open a new R script / notebook / quarto doc
 6. Load the R packages we will be using:
 
@@ -117,7 +98,9 @@ data("shao19", package = "microViz")
 
 *microViz has been used by groups analysing microbiomes associated with Antarctic sponges, Kiwi birds, and wastewater samples, amongst other things.*
 
-## Intro to phyloseq 🦠
+------------------------------------------------------------------------
+
+## 🦠 Intro to phyloseq
 
 We will start with some processed microbiota data from the mouse study.
 
@@ -244,7 +227,7 @@ mice <- tax_fix(mice, verbose = FALSE)
 
 ------------------------------------------------------------------------
 
-## Plot some microbiome compositions!
+## 📊 Plot some microbiome compositions!
 
 -   Okay, so how do we look at the microbiota abundance data?
 -   We're first going to make stacked compositional bar charts using the `microViz` package, `comp_barplot()` function.
@@ -482,7 +465,7 @@ More examples/tutorial of visualizing microbiome data using stacked barcharts ca
 
 ------------------------------------------------------------------------
 
-## Ecosystem diversity
+## ⚖️ Ecosystem diversity
 
 How diverse is the bacterial microbiome of each sample?
 
@@ -590,10 +573,10 @@ mice %>%
 
 :::
 
-## Comparing Diversity
+### Comparing Diversity 
 
 -   Let us now compare the diversity of our samples.
--   Perhaps we hypothesise that the mouse gut diversity differs after antibiotic treatment.
+-   Perhaps we hypothesise that the mouse gut diversity differs by type of antibiotic treatment.
 
 ```{r}
 miceShannonDf <- mice %>%
@@ -625,6 +608,7 @@ miceShannonDf %>%
 
 ```{r}
 allMice %>%
+  tax_fix(verbose = FALSE) %>% 
   ps_filter(treatment_days == "D7") %>%
   ps_calc_diversity(rank = "Family", index = "shannon", exp = TRUE, varname = "Exp_Shannon") %>%
   samdat_tbl() %>%
@@ -641,9 +625,16 @@ allMice %>%
 -   What about comparing richness?
 -   Practice making plots and doing simple statistical tests.
 
+```{r}
+#
+#
+#
+```
+
+
 ------------------------------------------------------------------------
 
-## Break Time! ☕️ ⌚️
+## ⌚ Break Time! ☕️ ️
 
 ### You want more about diversity?
 
@@ -707,12 +698,16 @@ ibd
 
 ```{r}
 #
+#
+#
 ```
 
 -   You can perform alpha diversity analysis: 
 -   Try comparing the alpha diversity of the IBD patients against the healthy controls.
 
 ```{r}
+#
+#
 #
 ```
 :::
@@ -727,7 +722,7 @@ This is useful for debugging / reproducing analysis.
 ::: {.callout-note collapse="true"}
 ### Long session_info output
 ```{r}
-devtools::session_info()
+sessioninfo::session_info()
 ```
 
 :::
