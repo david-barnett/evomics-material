@@ -609,9 +609,48 @@ miceShannonDf %>%
 ```{r}
 # A simple statistical test supports this assertion
 miceShannonDf %>% 
-  mutate(Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)) %>% 
+  mutate(Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)) %>%  
   wilcox.test(formula = Exp_Shannon ~ Ampicillin, data = .)
 ```
+
+::: {.callout-note collapse="true"}
+### Notes on R pipe syntax
+
+- As you probably know by now, `%>%` pipes the result from one function into the first argument of the next function.
+- This works fine for most functions, but sometimes you need to pipe the result into the second or third argument, not the first!
+- This is possible, you must include a `.` as a placeholder to tell the pipe where to put the result.
+
+
+```r
+miceShannonDf %>% 
+  mutate(Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)) %>%  
+  wilcox.test(formula = Exp_Shannon ~ Ampicillin, data = .)
+#                                 this dot is important! ^
+```
+
+- Since R version 4, you can also do this with the "native" pipe `|>`, but you must use a `_` as the placeholder, instead of a `.`
+
+```r
+miceShannonDf |>
+  mutate(Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)) |>  
+  wilcox.test(formula = Exp_Shannon ~ Ampicillin, data = _)
+#                                   this _ is important! ^
+```
+
+- If you don't like pipes, you must make intermediate objects, like this.
+
+```{r}
+dataForWilcoxTest <- mutate(
+  .data = miceShannonDf, 
+  Ampicillin = if_else(grepl(pattern = "Amp", x = treatment), 1, 0)
+)  
+
+wilcox.test(formula = Exp_Shannon ~ Ampicillin, data = dataForWilcoxTest)
+```
+
+- Use whichever you prefer and feel is most organised and readable! 😎
+
+:::
 
 - You can apply more complex statistical tests if you like
 - e.g. adjusting for covariates with linear regression, using `lm()`
