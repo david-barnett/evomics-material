@@ -1,16 +1,18 @@
 ## Evomics Workshop on Genomics - microbiome data analysis session
 
-## Overview 
+This is a readme for the GitHub repository found here: <https://github.com/david-barnett/evomics-material>
 
-Exercises and other materials used for teaching the microbiome data analysis practical session at the Evomics Workshop on Genomics
+This repository contains the source code for exercises and other materials used for teaching the microbiome data analysis practical session at the Evomics Workshop on Genomics.
 
-- Exercises directory contains quarto documents (exercises_1/2.qmd) and their output html files (exercises_1/2.html)
-- The html pages can also be viewed online at:
+The exercise guidance documents for this workshop can be viewed online:
+
   - https://david-barnett.github.io/evomics-material/exercises/exercises_1.html
   - https://david-barnett.github.io/evomics-material/exercises/exercises_2.html
 
 
-## Setup
+## Pre-workshop setup
+
+Workshop participants using the RStudio Server should NOT follow these instructions. These setup steps have already been done for you.
 
 - Install a recent version of R (e.g. 4.2) and RStudio (e.g. a mid/late 2023 version)
 - Clone this repo (and configure this github repo to be the upstream remote so future updates can be pulled)

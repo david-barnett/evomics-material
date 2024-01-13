@@ -50,9 +50,18 @@ cat("- Copy and modify the code examples\n- Try to understand what it does, and 
 
 ## ⚙️ Setup
 
-1. Open your RStudio server instance
+1. Open your RStudio Server on your instance
 2. Find the microbiome analysis folder
 3. Click on the file ending **.Rproj** to open an RStudio project 
+
+::: {.callout-note collapse="true"}
+
+### Sidenote: what is an RStudio project?
+
+A convenient aid for organising multiple R analysis projects. When activated it sets the working directory to the location of the .Rproj file. You can read more here: <https://rstats.wtf/projects>
+
+:::
+
 4. Go to the RStudio **"Git"** tab, and click on **Pull** (this will ensure you have this year's example data)
 5. Open a new R script / notebook / quarto doc
 6. Load the R packages we will be using:
@@ -186,7 +195,7 @@ mice@sam_data %>% View()
 
 ### Filling gaps in the taxonomy table
 
--   You might have noticed the the taxonomy table has some `NA` values.
+-   You might have noticed that the taxonomy table has some `NA` values.
 -   This often occurs when an ASV cannot be uniquely classified at the Genus level.
 -   The short 16S region sequenced may only allow a unique classification at Family rank or above.
 
@@ -263,7 +272,7 @@ mice %>%
 
 -   The ASVs have uninformative numeric IDs, but we can fix that with `tax_rename()`
 
-```{r}
+```{r, fig.width=7}
 mice %>% 
   ps_filter(treatment == "Vehicle") %>% 
   tax_rename(rank = "Family", pad_digits = 2) %>% # this changes the taxa_names
@@ -296,7 +305,7 @@ mice %>%
 -   Sadly we don't have enough distinct colours to show all the unique ASVs.
 -   Instead we can **aggregate** the counts at a higher taxonomic rank, e.g. Families.
 
-```{r}
+```{r, fig.width=6.5}
 mice %>%
   ps_filter(treatment == "Vehicle") %>%
   comp_barplot(
@@ -402,7 +411,7 @@ allMice
 ```{r}
 #| code-fold: true
 #| code-summary: Code to set up a grid layout using cage numbers and letters
-#| fig-width: 7
+#| fig-width: 9
 
 # Convert sample timings to a factor variable, for correct temporal ordering. 
 allMice <- allMice %>% 
