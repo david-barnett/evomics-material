@@ -270,16 +270,17 @@ But read the instructions first.
 ::: {.callout-warning collapse="true"}
 ### **Beware: some important notes on interactive analysis**
 
--   UniFrac distances can be quite slow (over a minute) to calculate!
+-   **Unblock pop-ups**: To allow the interactive analysis window to open in your browser, you may need to unblock pop-ups for your AMI instance address (check for messages about this after running the ord_explore command)
+-   **Slow UniFrac**: UniFrac distances can be quite slow (over a minute) to calculate!
     -   Filter to fewer samples and fewer taxa to speed it up (Before launching the app)
--   There are many distances available, feel free to try out ones we haven't talked about
+-   **Many other distances**: There are many distances available, feel free to try out ones we haven't talked about
     -   **BUT**:
         -   You shouldn't use a distance that you don't understand in your actual work, even if the plot looks nice! 😉
         -   A few of the distances might not work...
             -   They are mostly implemented in the package `vegan` and I haven't tested them all
             -   Errors will appear in the RStudio R console
             -   You can report to me any distances that don't work (if you're feeling helpful! 😇)
--   There are other ordination methods available in `ord_explore`
+-   **Other ordination methods**: There are other ordination methods available in `ord_explore`
     -   Try out PCA, principal **components** analysis, which does NOT use distances
     -   We will not cover constrained and conditioned ordinations
     -   If you are interested in e.g. RDA, you can look this up later
